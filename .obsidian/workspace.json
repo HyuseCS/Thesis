@@ -1,0 +1,227 @@
+{
+  "main": {
+    "id": "cdc973696be80a93",
+    "type": "split",
+    "children": [
+      {
+        "id": "4c0c379fab4da13b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "c818b7c640dd6f08",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Welcome.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Welcome"
+            }
+          }
+        ]
+      },
+      {
+        "id": "d83cfb9d7578a115",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b89d6e6fb97d3e7c",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "54341cb2ff5407dd",
+    "type": "split",
+    "children": [
+      {
+        "id": "bfa44a49206fb16a",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "8ddc77f9e411fa9c",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "e4099a131da7d728",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "dd221a8973043419",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "9a46990232a27882",
+    "type": "split",
+    "children": [
+      {
+        "id": "e93018155a1a72f8",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "fd9ebf5365a9a78b",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Welcome.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "cfc0b65c7dfb7c7f",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Welcome.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "98881c9135599d41",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "8b564729b7e52bca",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "0c5df1f25bbc7e74",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Welcome.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "c818b7c640dd6f08",
+  "lastOpenFiles": [
+    "05_Living_Outline/Outline.md",
+    "05_Living_Outline/Outline.md.tmp.10255.ef1357e3ac5d",
+    "03_Thematic_Synthesis/SCR_Bottlenecks.md",
+    "03_Thematic_Synthesis/SCR_Bottlenecks.md.tmp.10255.6a4c4de676b2",
+    "04_Argument_Matrix/matrix.md",
+    "04_Argument_Matrix/matrix.md.tmp.10255.f0e5a730647d",
+    "02_Source_Notes/Template.md",
+    "02_Source_Notes/Template.md.tmp.10255.7284d5ad79b3",
+    "CLAUDE.md",
+    "CLAUDE.md.tmp.10255.034e7b051b3f",
+    "assets",
+    "05_Living_Outline",
+    "04_Argument_Matrix",
+    "03_Thematic_Synthesis",
+    "02_Source_Notes",
+    "Gist.md",
+    "Welcome.md"
+  ]
+}
