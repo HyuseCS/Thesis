@@ -87,6 +87,44 @@ Reading large PDFs: use page ranges, and read the **whole** paper before writing
 
 ---
 
+## 5b. Required Tooling: the Academic Research Skill
+
+**This vault expects the `academic-research-skills` plugin. Use it — do not hand-roll what it already does.**
+
+If your agent has it, prefer it for the tasks below. Ad-hoc prose written from scratch will drift from academic conventions; the skill enforces them.
+
+| Task in this vault | Use |
+| :--- | :--- |
+| Literature search, evidence synthesis, gap mapping | `deep-research` |
+| Comparing papers by WHY / HOW / WHAT | `/ars-3w` |
+| Annotated bibliography for `03_Thematic_Synthesis/` | `/ars-lit-review` |
+| Verifying a claim before it enters the vault | `deep-research` fact-check mode |
+| Planning a chapter of `05_Living_Outline/` | `/ars-plan` |
+| Building a detailed outline + evidence map | `/ars-outline` |
+| Drafting the thesis or a paper from the vault | `academic-paper` |
+| Checking citations | `/ars-citation-check` |
+| Abstract + keywords | `/ars-abstract` |
+| Simulated peer review before submission | `academic-paper-reviewer` / `/ars-reviewer` |
+| Responding to real reviewer comments | `/ars-revision-coach`, `/ars-rebuttal-audit` |
+| AI-use disclosure for the venue | `/ars-disclosure` |
+| Full research → write → review → revise chain | `academic-pipeline` |
+
+The skill supports §1 of this document — it has its own source-verification and citation-checking machinery. **It does not replace §1.** A citation the skill produced still needs to be true, and you still check it.
+
+**If the skill is not available**, stop and tell the user to install it:
+
+```
+/plugin marketplace add Imbad0202/academic-research-skills
+/plugin install academic-research-skills
+/reload-plugins
+```
+
+Or from the repository directly: <https://github.com/imbad0202/academic-research-skills>
+
+Do not silently proceed without it. Say what is missing, give the commands, and let the user decide whether to install or continue anyway.
+
+---
+
 ## 6. Writing Conventions
 
 - Link between notes with `[[wikilinks]]`, not paths. This is an Obsidian vault.
