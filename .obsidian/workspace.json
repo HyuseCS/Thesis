@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Welcome.md",
+                "file": "GOAL.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Welcome"
+              "title": "GOAL"
             }
           }
         ]
@@ -115,7 +115,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Welcome.md",
+                "file": "GOAL.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -134,7 +134,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Welcome.md",
+                "file": "GOAL.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
@@ -177,7 +177,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Welcome.md",
+                "file": "GOAL.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -206,22 +206,24 @@
   },
   "active": "c818b7c640dd6f08",
   "lastOpenFiles": [
+    "Welcome.md",
+    "GOAL.md.tmp.10255.55bcbda6dd60",
+    "GOAL.md.tmp.10255.3c7654e6bef0",
+    "05_Living_Outline/Outline.md.tmp.10255.7e10b0eebf62",
+    "GOAL.md",
+    "GOAL.md.tmp.10255.1eb5f9313b49",
+    "04_Argument_Matrix/matrix.md.tmp.10255.2fc970bc0d44",
+    "02_Source_Notes/Scheffe2022_SCR.md",
+    "02_Source_Notes/Scheffe2022_SCR.md.tmp.10255.0359e2f42be2",
+    "01_Corpus/Scheffe2022_SCR.pdf",
+    "01_Corpus/Sequential_Convex_Programming_Methods_for_Real-tim.pdf",
     "05_Living_Outline/Outline.md",
     "05_Living_Outline/Outline.md.tmp.10255.ef1357e3ac5d",
     "03_Thematic_Synthesis/SCR_Bottlenecks.md",
     "03_Thematic_Synthesis/SCR_Bottlenecks.md.tmp.10255.6a4c4de676b2",
     "04_Argument_Matrix/matrix.md",
-    "04_Argument_Matrix/matrix.md.tmp.10255.f0e5a730647d",
     "02_Source_Notes/Template.md",
-    "02_Source_Notes/Template.md.tmp.10255.7284d5ad79b3",
     "CLAUDE.md",
-    "CLAUDE.md.tmp.10255.034e7b051b3f",
-    "assets",
-    "05_Living_Outline",
-    "04_Argument_Matrix",
-    "03_Thematic_Synthesis",
-    "02_Source_Notes",
-    "Gist.md",
-    "Welcome.md"
+    "Gist.md"
   ]
 }
