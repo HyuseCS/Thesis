@@ -204,8 +204,13 @@
       "bases:Create new base": false
     }
   },
-  "active": "c818b7c640dd6f08",
+  "active": "8ddc77f9e411fa9c",
   "lastOpenFiles": [
+    "CLAUDE.md.tmp.10255.5001e6bcd991",
+    "CLAUDE.md.tmp.10255.91f5d86e470e",
+    "01_Corpus/ingested/2022/Scheffe2022_SCR.pdf",
+    "01_Corpus/ingested/2022",
+    "01_Corpus/ingested",
     "Welcome.md",
     "GOAL.md.tmp.10255.55bcbda6dd60",
     "GOAL.md.tmp.10255.3c7654e6bef0",
@@ -215,12 +220,8 @@
     "04_Argument_Matrix/matrix.md.tmp.10255.2fc970bc0d44",
     "02_Source_Notes/Scheffe2022_SCR.md",
     "02_Source_Notes/Scheffe2022_SCR.md.tmp.10255.0359e2f42be2",
-    "01_Corpus/Scheffe2022_SCR.pdf",
-    "01_Corpus/Sequential_Convex_Programming_Methods_for_Real-tim.pdf",
     "05_Living_Outline/Outline.md",
-    "05_Living_Outline/Outline.md.tmp.10255.ef1357e3ac5d",
     "03_Thematic_Synthesis/SCR_Bottlenecks.md",
-    "03_Thematic_Synthesis/SCR_Bottlenecks.md.tmp.10255.6a4c4de676b2",
     "04_Argument_Matrix/matrix.md",
     "02_Source_Notes/Template.md",
     "CLAUDE.md",
