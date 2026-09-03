@@ -76,7 +76,7 @@ Record findings in the note's *Critique & Optimization Vectors* section, each wi
 
 **How files arrive:** the standard route is the Zotero pipeline — `python scripts/zotero_pull.py` downloads new PDFs from the user's Zotero collection into the drop zone, each with a `<CitationKey>.zotero.json` metadata sidecar and an entry in `01_Corpus/.zotero_state.json` (status `downloaded`). Setup is in [README.md](README.md). When the user asks to "sync zotero", "pull new papers", or "ingest", run the script and then the procedure below for each new paper.
 
-**Ingestion procedure** — a file in the root of `01_Corpus/` is not yet ingested. Process papers one at a time, never in parallel (the matrix and state file are shared):
+**Ingestion procedure** — a file in the root of `01_Corpus/` is not yet ingested. Steps 1–2 are per-paper and may run in parallel (e.g. one subagent per paper); steps 3–5 touch shared files and must run sequentially in one thread:
 
 1. Confirm the citation key `AuthorYear_Keyword`. The script proposes one; refine the `Keyword` if the paper suggests a better one (e.g. the algorithm's name). Year = publication year. If you rename, rename the PDF, the sidecar, and the `citation_key` fields in the sidecar and state file.
 2. Read the whole paper, then write `02_Source_Notes/AuthorYear_Keyword.md`. Use `02_Source_Notes/Scheffe2022_SCR.md` as the structural gold standard (richer than `Template.md`). Citation data (authors, venue, DOI) comes from the sidecar, not from memory.
