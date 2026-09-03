@@ -85,6 +85,8 @@ The move is the last step and marks it done. Never move before the note exists.
 
 Reading large PDFs: use page ranges, and read the **whole** paper before writing the note. Appendices carry the proofs; the results section carries the numbers you actually need.
 
+**How files arrive:** the standard route is the Zotero pipeline — `python scripts/zotero_pull.py` downloads new PDFs from the user's Zotero collection into the drop zone with a `<CitationKey>.zotero.json` metadata sidecar (use it for citation data instead of guessing). The `/zotero-ingest` skill runs the pull plus this full procedure; the sidecar moves to `ingested/<year>/` together with its PDF. Setup is in [README.md](README.md).
+
 ---
 
 ## 5b. Required Tooling: the Academic Research Skill
