@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Pull new PDFs from a Zotero collection into 01_Corpus/ (the drop zone).
 
-Config lives outside the repo (the repo is public):
-  ~/.config/thesis-zotero.env
-    ZOTERO_USER_ID=1234567
+Config lives in .env at the repo root (gitignored — never commit it):
+    ZOTERO_GROUP_ID=1234567    # or ZOTERO_USER_ID for a personal library
     ZOTERO_API_KEY=xxxxxxxx
     ZOTERO_COLLECTION=Thesis
 """
@@ -14,7 +13,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-CONFIG = Path.home() / ".config" / "thesis-zotero.env"
+CONFIG = Path(__file__).resolve().parent.parent / ".env"
 CORPUS = Path(__file__).resolve().parent.parent / "01_Corpus"
 STATE_FILE = CORPUS / ".zotero_state.json"
 API = "https://api.zotero.org"
@@ -32,7 +31,7 @@ def load_config():
     if not CONFIG.exists():
         die(f"missing config file {CONFIG}\n"
             "create it with:\n"
-            "  ZOTERO_USER_ID=<your numeric userID>\n"
+            "  ZOTERO_GROUP_ID=<numeric groupID>  (or ZOTERO_USER_ID for a personal library)\n"
             "  ZOTERO_API_KEY=<your key>\n"
             "  ZOTERO_COLLECTION=Thesis")
     cfg = {}
@@ -41,16 +40,21 @@ def load_config():
         if line and not line.startswith("#") and "=" in line:
             k, v = line.split("=", 1)
             cfg[k.strip()] = v.strip()
-    for k in ("ZOTERO_USER_ID", "ZOTERO_API_KEY"):
-        if not cfg.get(k):
-            die(f"{k} not set in {CONFIG}")
+    if not cfg.get("ZOTERO_API_KEY"):
+        die(f"ZOTERO_API_KEY not set in {CONFIG}")
+    if cfg.get("ZOTERO_GROUP_ID"):
+        cfg["prefix"] = f"/groups/{cfg['ZOTERO_GROUP_ID']}"
+    elif cfg.get("ZOTERO_USER_ID"):
+        cfg["prefix"] = f"/users/{cfg['ZOTERO_USER_ID']}"
+    else:
+        die(f"set ZOTERO_GROUP_ID (group library) or ZOTERO_USER_ID (personal library) in {CONFIG}")
     cfg.setdefault("ZOTERO_COLLECTION", "Thesis")
     return cfg
 
 
 def api_get(cfg, path, raw=False):
     req = urllib.request.Request(
-        f"{API}/users/{cfg['ZOTERO_USER_ID']}{path}",
+        f"{API}{cfg['prefix']}{path}",
         headers={"Zotero-API-Key": cfg["ZOTERO_API_KEY"]})
     try:
         with urllib.request.urlopen(req, timeout=60) as r:
@@ -78,7 +82,7 @@ def find_collection(cfg):
     for c in paged(cfg, "/collections"):
         if c["data"]["name"] == name:
             return c["key"]
-    die(f"collection '{name}' not found in library {cfg['ZOTERO_USER_ID']}")
+    die(f"collection '{name}' not found in library {cfg['prefix']}")
 
 
 def citation_key(data, taken):
