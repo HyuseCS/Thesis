@@ -1,6 +1,8 @@
 # AGENTS.md — Operating Guidelines for LLM Agents
 
-This is a thesis vault, not a codebase. It converges literature, methodology, and computational profiling toward one thesis on optimizing the **Sequential Convex Restriction (SCR)** algorithm for real-time trajectory planning.
+This is a thesis vault, not a codebase. It converges literature, methodology, and measurement toward one thesis on **micro-sector telemetry analysis for sim-racing lap optimization**: build a micro-sector dataset, model sector-level feature importance and corner interdependency, and drive an evolutionary lap optimizer with it, validated against human baseline telemetry.
+
+The vault was rebased on 2026-09-11. Its earlier subject — porting the Sequential Convex Restriction (SCR) planner to C++ — is now Related Literature only. See [[GOAL]] §8.
 
 Read [[GOAL]] before doing anything else. It is the anchor. Every action must trace to a goal in it.
 
@@ -24,16 +26,15 @@ Specific traps:
 
 ---
 
-## 2. Computational Focus
+## 2. Measurement Focus
 
-This thesis is about *cost*, not elegance. When extracting or writing:
+This thesis is about *evidence*, not adjectives. When extracting from a paper or writing up our own work:
 
-- Prioritize algorithmic complexity (Big O), constraint counts, solver time, hardware specs, sampling periods.
-- Never write "Algorithm X is better." Write **why** and **at what computational cost**, with the number.
-- Always attach the hardware to a timing number. "73 ms" is meaningless; "~73 ms median on an AMD Ryzen 5 3600, MATLAB R2021a + CPLEX 12.10" is a datum.
-- Always attach the problem size. Solve time without constraint count or horizon length cannot be compared to anything.
-
----
+- Never write "Algorithm X is better" or "the model performs well". Write **how much better, on what data, measured how**, with the number.
+- Every model result carries: dataset size, class balance, validation scheme (split or cross-validation), and the metric's definition. A single accuracy figure from one train/test split is a weak claim and must be labelled as one.
+- Every runtime carries the hardware and the problem size. "3 hours of training" is meaningless without the machine and the data volume.
+- Every telemetry figure carries the simulator, the car, the circuit, and the lap count. Numbers from different car/track/sim combinations are not comparable — say so rather than tabling them side by side.
+- Solver time, constraint counts, and Big-O still matter for the trajectory-optimization papers in the Related Literature. Extract them as before; they characterize that body of work, they are not targets of this thesis.
 
 ## 3. Visual Mapping
 
@@ -50,12 +51,13 @@ Rules:
 
 Actively hunt gaps in the authors' methodology. This is where the thesis contribution comes from. Standing checklist for every paper:
 
-- **Simulation only?** Flag as a hardware-implementation bottleneck.
-- **What is not timed?** A step described but never measured is a candidate contribution.
+- **Autonomous or human?** Who or what is being optimized, and is the output something a human driver could act on? This is the axis the thesis sits on.
+- **What granularity?** Whole lap, sector, corner, or sample. A result reported only at lap level is a candidate for our sector-level question.
+- **What is not measured?** A step described but never quantified is a candidate contribution.
 - **What is tuned but never swept?** A free parameter with one reported value is an unexplored axis.
 - **Commercial/proprietary tooling?** It hides whether the result is the algorithm or the solver.
 - **Where does the paper hedge?** Phrases like "can be reduced by", "minor relaxation", "future work" are the author naming their own gap. Quote them exactly — an admitted gap is far stronger evidence than one you inferred.
-- **What scales badly?** Anything reported at one problem size only.
+- **What scales badly?** Anything reported at one problem size, one track, one car, or one simulator only.
 
 Record findings in the note's *Critique & Optimization Vectors* section, each with a citation.
 

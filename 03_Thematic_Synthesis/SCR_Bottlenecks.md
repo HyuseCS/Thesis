@@ -1,4 +1,6 @@
-# Computational Bottlenecks
+# SCR Computational Bottlenecks
+
+**Scope note (2026-09-11):** this page is Related Literature only. Since the rebase ([[GOAL]] v0.2) the thesis does not optimize SCR. Kept because it characterizes the autonomous trajectory-optimization branch of Chapter 2.
 
 **Current Consensus on SCR Inefficiencies:**
 The core limitation of the Sequential Convex Restriction (SCR) is not its mathematical safety, but its polynomial time complexity per iteration.
@@ -14,5 +16,4 @@ flowchart LR
     D --> E[Convex Constraint Set]
 ```
 
-**Thesis Trajectory:**
-Optimization must target the data structures operating during the polygon expansion phase. Future literature searches: fast convex hull algorithms, parallelized geometric constraint generation, dynamic constraint dropping for distant time horizons.
+**Why it sits in the RRL:** SCR buys a feasibility guarantee with roughly double the solve time of SL (~73 ms vs ~35 ms, `Fig. 8`). That trade is a controller-design concern. It produces no per-corner attribution and no output a human driver can act on, which is the limitation the base document names for this whole branch of work (`thesis new base.md`, Related Literature Notes).

@@ -1,126 +1,92 @@
 # GOAL — Thesis Anchor
 
-> Working title (TBD): *A Real-Time C++ Sequential Convex Restriction Trajectory Planner Evaluated in a High-Fidelity Racing Simulator*
+> Working title (TBD): *Micro-Sector Feature Importance and Evolutionary Lap Optimization for Human Sim-Racing Performance*
 >
 > This file is the anchor. Every note, experiment, and chapter in this vault must trace back to a numbered goal below. If a task does not serve G1–G4, it is out of scope.
 >
-> **Status: v0.1 — DRAFT, not yet reviewed by adviser.** This document is expected to change. See §7.
+> **Status: v0.2 — REBASED.** This supersedes the SCR-port goal of v0.1. The old gates are kept, struck through, in §8. Sequential Convex Restriction is now a Related Literature item, not a build target.
 
 ---
 
 ## 0. Origin
 
-The thesis builds on [[Scheffe2022_SCR]] (Scheffe, Henneken, Kloock, Alrifaee, *IEEE T-IV* 2022). That paper proposes **Sequential Convex Restriction (SCR)**: convexify the nonconvex race-track constraint by covering the track with **overlapping convex polygons**, so every solution of the convex sub-problem is guaranteed feasible in the original nonconvex problem (`Thm. 2`, `Appendix B`). Its rival, **Sequential Linearization (SL)**, relaxes the constraint instead and can therefore produce trajectories that leave the track (`Fig. 6`).
+The base document is `01_Corpus/thesis new base.md`. Everything in this section is drawn from it; papers marked *(not yet ingested)* have no source note in this vault yet, so their claims are carried at the base document's word and must be re-verified on ingestion (AGENTS.md §1).
 
-Reported results, all from the source paper:
+**Literature position.** Most sim-racing optimization work targets autonomous racing agents; integrated optimization frameworks for *human* drivers are comparatively rare (Hojaji et al. 2026; Kabzan et al. 2019; Lee et al. 2025 — *not yet ingested*). Trajectory optimization, RL control, and racing-line generation are framed as autonomous control problems in F1TENTH, TORCS, and full-size racecars (Evans, Engelbrecht, and Jordaan 2023; Garlick and Bradley 2021; Ghignone, Baumann, and Magno 2022; Samak, Samak, and Kandhasamy 2021 — *not yet ingested*). Those approaches give limited insight for improving *human* performance (Hojaji et al. 2026).
 
-| Metric | SL | SCR | Source |
-| :--- | :--- | :--- | :--- |
-| Lap time, standing start | 11.0 s | 10.1 s (−8.91 %) | `Table I` |
-| Lap time, flying lap | 10.0 s | 9.3 s (−7.53 %) | `Table I` |
-| Median solver time | ~35 ms | ~73 ms | `Fig. 8` |
-| Maximum solver time | ~48 ms | ~87 ms | `Fig. 8` |
-| Feasible in nonconvex problem | not guaranteed | guaranteed | `Thm. 2` |
+**The lineage this thesis extends.**
 
-Two facts define the whole thesis:
+| Work | What it did | Status in vault |
+| :--- | :--- | :--- |
+| Hojaji, Toth, Campbell 2023 | ML on human sim-racing telemetry: k-means performance levels, XGBoost classification, 10-feature ranking (speed, RPM, g_lat, throttle, steer, lane deviation …) | Ingested — [[Hojaji2023_TelemetryML]] |
+| Hojaji et al. 2024 | AI analysis of driving behaviour from telemetry | Not yet ingested |
+| Hojaji, Toth, Campbell 2026 | ML feature importance + evolutionary algorithm to optimize sector-level performance indicators and generate faster, smoother, more stable idealized laps for coaching | Not yet ingested |
 
-1. **SCR is better but expensive.** ~73 ms median against a 100 ms sampling time (`Sec. VI`). The real-time margin is ~27 ms.
-2. **SCR was never run outside MATLAB simulation.** The authors state real experiments are future work (`Sec. VII`). The implementation is MATLAB R2021a with the commercial solver `cplexqp` (IBM ILOG CPLEX 12.10) on an AMD Ryzen 5 3600 desktop (`Sec. VI`).
+**Problem statement.** Hojaji et al. (2026) computed feature importance **globally**, not at the **sector level**, because reliable segment-specific estimation would need a larger dataset. This leaves open which circuit segments most strongly influence optimal lap performance (`thesis new base.md`, Problem statement). The same gap is named one paper earlier: *"It would also be possible to focus on a specific segment rather than the data for the full lap to estimate the lap time. We defer this work as the future work."* ([[Hojaji2023_TelemetryML]], `Sec. 3.2`).
 
-The thesis attacks fact 2 first, then fact 1.
+That open question is this thesis.
 
 ---
 
 ## 1. Goal Statement
 
-**Port SCR from MATLAB to real-time C++, validate it as a faithful reproduction of the published algorithm, drive a vehicle in Assetto Corsa with it, then extend the algorithm with new parameters that reduce lap time against SL and against unmodified SCR — while keeping the feasibility guarantee that defines SCR.**
+**Build a micro-sector telemetry dataset from a racing simulator, model how sequential track segments influence each other and where speed must be traded between them, then drive an evolutionary optimizer with that sector-level importance to produce faster idealized laps — validated against human baseline telemetry.**
 
-The goal decomposes into four sequential goals. Each is a gate: **G(n+1) must not start until G(n) passes its exit criteria.**
+The three objectives of the base document map to G1–G3. G4 is the validation the base document attaches to objective 3, promoted to its own gate because a generated lap that no human could drive is not a result.
 
----
-
-### G1 — Port: SCR in real-time C++
-
-Reimplement the SCR trajectory planner of [[Scheffe2022_SCR]] in C++, replacing MATLAB and CPLEX.
-
-Scope:
-- General Trajectory Program (`Eq. 14`), single-track vehicle model + Pacejka Magic Tire Formula (`Sec. II-A`, `Eqs. 2–3`).
-- Track polygon construction, Algorithm 2: `tessellateTrack` → `mergePolygons` → `addOverlaps` (`Sec. V-E2`).
-- Track restriction function $R_T$ (`Eq. 28`), acceleration restriction $R_\mathcal{A}$ (`Eq. 27`).
-- RTI control loop, Algorithm 1, with $N_\text{RTI} = 1$.
-- Terminal constraint $v^{(H_p)} = 0$ (`Eq. 13`) — kept in G1 exactly as published, questioned in G4.
-
-Exit criteria:
-- **G1.1** The C++ planner solves the same QP (`Eq. 36`) as the MATLAB reference on the 1:43 Hockenheimring track data from the authors' public repository.
-- **G1.2** Median solve time measured and reported on documented hardware. Target: **≤ 73 ms**, the published median. A slower port is a failed port until explained.
-- **G1.3** No commercial solver dependency. Free QP solver only.
-- **G1.4** Deterministic timing: 99th percentile within 20 % of median, matching the "close to the median" property the authors call desirable (`Sec. VI-B`).
-
-Open decisions (resolve before coding — see [[Roadmap]]):
-- QP solver choice: OSQP, HPIPM, qpOASES, or Clarabel.
-- Whether Algorithm 2 runs **offline once per track** or **online per timestep**. The paper does not say, and does not time it. **This is the first real research question of the thesis, not an implementation detail.**
+Each gate is a gate: **G(n+1) must not start until G(n) passes its exit criteria.**
 
 ---
 
-### G2 — Validate: prove the port is the same algorithm
+### G1 — Dataset: micro-sector telemetry
 
-A port that runs is not a port that is correct. Before any Assetto Corsa work or any novelty, prove equivalence to the published algorithm.
+*Base objective 1: "construct a micro-sector telemetry dataset by extracting and processing sequential driving data from a racing simulator environment."*
 
 Exit criteria:
-- **G2.1 Guarantee holds.** Over a full lap, every planned position $p^{(j)}$ lies inside the true nonconvex track area $T$. Zero violations. This is the property SCR exists for (`Thm. 2`); if the port violates it, the port is wrong.
-- **G2.2 Recursive feasibility holds.** The warm-start trajectory of `Thm. 1` / `Eq. 22` is feasible at every timestep. No solver infeasibility over a full lap.
-- **G2.3 SL baseline reproduced.** SL (`Eq. 18`) implemented in the same C++ codebase, so all comparisons are same-code, same-solver, same-machine.
-- **G2.4 Published trend reproduced.** In the paper's own MATLAB-equivalent scenario, the port reproduces the qualitative results of `Table I` and `Fig. 8`: SCR beats SL on lap time, SCR costs roughly double the solve time of SL.
-- **G2.5 Deviation register.** Every place the C++ differs from the paper (solver tolerance, $\varepsilon_A$, $b_\text{max}$, $n_\text{acc}$, polygon count) is written down with its numerical effect. Assumed-equal is not validated.
+- **G1.1 Segmentation defined.** The rule that splits the track into micro-sectors is written down and reproducible: boundary criterion, sector count, and how corners versus straights are handled. Two people running the rule must get the same sectors.
+- **G1.2 Sequence preserved.** Each lap is a *sequence* of micro-sector records, with entry/exit state (at minimum entry speed, exit speed, min speed) carried per sector. Order is data, not metadata — G2 cannot measure interdependency without it.
+- **G1.3 Scale and balance reported.** Number of laps, drivers, and sectors; performance-class counts. [[Hojaji2023_TelemetryML]] carried 475 FAST against 91 SLOW laps (`Table 2`) and never addressed it. Ours is reported before any model is trained.
+- **G1.4 Cleaning documented with counts.** Invalid/pit/outlier laps removed, with before-and-after counts and the exact threshold, per [[Hojaji2023_TelemetryML]] `Sec. 2.2`.
+- **G1.5 Pipeline is in the repo.** Extraction and processing run from committed scripts. No opaque manual step in proprietary tooling — the MoTec i2 Pro math-channel opacity is a stated critique of the prior work, and repeating it would inherit the flaw.
 
-Note on G2.4: reproducing the *trend* is the criterion, not reproducing 9.3 s. Absolute lap time depends on solver, tolerances, and machine. Claiming exact reproduction would be a fabricated result.
+Open decisions (resolve before collecting — see §6): simulator, telemetry source, car and circuit, micro-sector definition.
 
 ---
 
-### G3 — Deploy: Assetto Corsa as the evaluation environment
+### G2 — Model: sector importance and corner interdependency
 
-Replace the paper's MATLAB simulation with Assetto Corsa, a commercial high-fidelity racing simulator. This directly addresses the "simulation only, hardware is future work" gap of `Sec. VII` — AC is not hardware, but it is an **independent, unmodelled, higher-fidelity plant** that the planner does not control and cannot see inside.
-
-That independence is the scientific value, and also the difficulty. It creates a problem the source paper never had:
-
-> **The plant/model mismatch problem.** The paper's planner predicts with the same single-track model that generates the simulated motion (`Eq. 1`). In Assetto Corsa the true plant is a proprietary tire and suspension model. The planner's internal model becomes an *approximation of a black box*. Model mismatch, not solve time, may turn out to be the dominant error source.
+*Base objective 2: "develop a predictive machine learning model that quantifies corner interdependencies and identifies optimal speed-tradeoffs across sequential track sectors."*
 
 Exit criteria:
-- **G3.1 State in.** Read vehicle state (position, velocity, heading, yaw rate) from AC at a documented rate and latency.
-- **G3.2 Control out.** Apply steering and throttle/brake to the AC car from the C++ planner.
-- **G3.3 Track in.** Extract an AC track centre line and boundaries, and build the polygon set of `Algorithm 2` from it. This is a scale jump: the paper used a 1:43 track ~250 m long with 1090 tessellated polygons merged to 178 (`Fig. 3`). A full-scale AC circuit is 3–7 km. **Constraint count is a function of track length — verify it, do not assume it scales.**
-- **G3.4 Model fit.** Identify single-track and Pacejka parameters for the chosen AC car ($m$, $I_z$, $l_f$, $l_r$, $B$, $C$, $D$ per axle, motor curve $C_{m1}, C_{m2}, C_{r0}, C_{r2}$). Report the fit error against AC telemetry.
-- **G3.5 Closed loop.** The car completes a full clean lap of one circuit under SCR control, no manual intervention, no off-track excursion.
-- **G3.6 Timing budget.** End-to-end loop latency (read → plan → actuate) measured and reported, not just QP solve time. The paper reports only solver time (`Fig. 8`); a closed loop has more.
-
-Fixed for the whole thesis before G3 starts: **one car, one circuit, one AC physics/assist configuration.** Changing any of them invalidates every prior lap time.
-
-Risk, stated plainly: AC has no official trajectory-control API. State reading is a solved problem (shared memory / UDP telemetry). **Writing control input is the hard part and is the single largest schedule risk in this thesis.** G3.2 is the make-or-break task. If it cannot be done, the fallback environment must be chosen early, not late.
+- **G2.1 Importance with uncertainty.** Sector-level feature importance is estimated with cross-validation and reported with spread, plus per-class precision/recall. A single 70/30 split and one headline accuracy number (the prior work's only classification result, `Sec. 3.2`) is not enough evidence at sector granularity.
+- **G2.2 Interdependency quantified.** The effect of sector *i* on sector *i+1* (and beyond) is reported as a measured effect size with its uncertainty, not asserted. Name the measure before running it.
+- **G2.3 Beats the global baseline.** A lap-level (global) importance model is trained on the same data and compared against the sector-level model. This comparison *is* the gap Hojaji et al. (2026) left open; without it the thesis has no claim.
+- **G2.4 Data sufficiency answered.** The prior work's stated reason for skipping sector-level estimation was dataset size. Report a learning curve: how many laps per sector are needed before importance estimates stabilize. A negative answer here is a publishable finding.
+- **G2.5 Importance is not causality.** Any claim that a sector "causes" lap-time loss states what supports it — correlation, ablation, or intervention — and does not overreach.
 
 ---
 
-### G4 — Extend: the novelty
+### G3 — Optimize: evolutionary algorithm driven by sector importance
 
-Add parameters to SCR that improve lap time relative to (a) SL and (b) unmodified SCR, in Assetto Corsa, without breaking the feasibility guarantee of `Thm. 2`.
-
-The specific parameters are **deliberately not fixed yet.** They must be chosen from measurement made in G1–G3, not from a guess made today. Choosing the novelty before profiling would be picking an answer before seeing the problem.
-
-Candidate directions already visible in the source paper, kept as a menu:
-
-| Candidate | Paper's own opening | Where |
-| :--- | :--- | :--- |
-| Adaptive polygon resolution (fewer edges far from the vehicle) | "can be reduced by a coarser representation of the track, i.e., using polygons with fewer sides" — proposed, never quantified | `Sec. VI-B` |
-| Less conservative terminal constraint than $v^{(H_p)} = 0$ | Forces a predicted standstill every timestep; conservative by construction | `Eq. 13` |
-| Tuning / adapting the merge tolerance $\varepsilon_A$ | Authors call merging "a minor relaxation" and do not bound its effect | `Sec. V-E2b` |
-| Tuning the acceleration restriction $b_\text{max} \in (0,1)$ | A free conservatism knob, never swept | `Eq. 27` |
-| Faster polygon index lookup $l(\bar p)$ | Complexity never reported | `Sec. V-E1` |
-| Parallelising Algorithm 2 | Stated as a sequential loop | `Alg. 2` |
+*Base objective 3, part 1: "optimize overall lap-time performance by integrating the sector-importance model with an evolutionary algorithm."*
 
 Exit criteria:
-- **G4.1** At least one parameter extension is implemented and its effect swept, not just demonstrated at one setting.
-- **G4.2** Lap time improves against the G2.3 SL baseline and against unmodified SCR, in the same AC configuration, over repeated laps with variance reported. One fast lap is not a result.
-- **G4.3 The guarantee survives.** The extension is shown — by proof against the restriction conditions `Eq. 21`, or by exhaustive measurement — not to break feasibility. **An extension that gains lap time by weakening the restriction is not an improvement to SCR; it is a step back toward SL, and must be reported as such.**
-- **G4.4** Real-time capability retained: end-to-end latency below the control period.
+- **G3.1 Integration is real.** Sector importance enters the search explicitly (objective terms, weighting, or search-space shaping) and where it enters is documented.
+- **G3.2 Feasibility defined up front.** The bound that keeps a generated lap physically attainable is stated *before* optimization runs, and every reported lap satisfies it. An optimizer with no bound will return an impossible lap and call it optimal.
+- **G3.3 Ablation, not a demo.** Three arms on the same data: EA + sector importance, EA + global importance, EA alone. One configuration producing one fast lap is not a result.
+- **G3.4 Cost reported.** Population, generations, wall-clock time, and hardware. [[Hojaji2023_TelemetryML]] reports no computational cost at all; this vault does not repeat that (AGENTS.md §2).
+
+---
+
+### G4 — Validate against human baseline telemetry
+
+*Base objective 3, part 2: "validating the generated racing lines against human baseline telemetry."*
+
+Exit criteria:
+- **G4.1 Baseline fixed first.** The human baseline is defined before optimization results exist: which laps, which drivers, which summary statistic, and the run-to-run spread. Improvement is claimed against that spread, not against a single best lap.
+- **G4.2 Improvement measured.** Optimized lap time versus the baseline, with variance. An improvement smaller than the human lap-to-lap standard deviation is not an improvement.
+- **G4.3 Attainability shown.** The generated line stays within track limits and within the vehicle behaviour actually observed in the telemetry. A line the data never demonstrates is a claim about a car, not about a driver.
+- **G4.4 Coaching read-out.** The result is expressed as which micro-sectors carry the available time — the practical output the base document points at. A number with no sector attached does not help a driver.
 
 ---
 
@@ -128,11 +94,11 @@ Exit criteria:
 
 | ID | Claim to be earned | Measured by | Threshold |
 | :--- | :--- | :--- | :--- |
-| S1 | SCR runs in real-time C++ without a commercial solver | median QP solve time | ≤ 73 ms, free solver |
-| S2 | The port is the published algorithm | track-constraint violations per lap | exactly 0 |
-| S3 | SCR controls a car in a high-fidelity simulator | clean unassisted laps completed | ≥ 1, then repeatable |
-| S4 | The extension is faster | mean lap time vs SL and vs plain SCR, n laps | improvement > run-to-run std. dev. |
-| S5 | The extension is still SCR | feasibility under the extension | guarantee proven or exhaustively unviolated |
+| S1 | A reproducible micro-sector telemetry dataset exists | laps, drivers, sectors, class balance, cleaning counts | all reported; pipeline reruns from committed scripts |
+| S2 | Sector-level importance is estimable from our data | stability of importance under cross-validation | spread reported; stabilization point identified |
+| S3 | Sector-level beats lap-level importance | model comparison on the same data (G2.3) | sector model better on the stated metric, or the negative result reported |
+| S4 | Corner interdependency is measurable | effect size of sector *i* on sector *i+1* | effect reported with uncertainty |
+| S5 | Importance-guided EA produces a faster attainable lap | optimized lap time vs human baseline, n runs | gain > baseline standard deviation, and feasible under G3.2 |
 
 ---
 
@@ -140,12 +106,13 @@ Exit criteria:
 
 Named so they cannot creep in:
 
-- Physical RC-car or full-scale hardware experiments.
-- Opponents, obstacles, or overtaking. The source paper excludes them too (`Sec. VII`).
-- Multi-vehicle / networked MPC.
-- Beating a human driver or a commercial racing AI.
-- Learning-based or end-to-end approaches.
-- Being a better AC modder. Interfacing with AC is a **means**, not a contribution. It belongs in an implementation chapter, not the novelty chapter.
+- Building an autonomous racing agent or a real-time onboard controller.
+- Porting, reimplementing, or optimizing SCR, SL, or any MPC planner. SCR is Related Literature (§0, [[Scheffe2022_SCR]]), not a deliverable.
+- Real-time execution. This work is offline analysis and offline optimization.
+- Physical hardware, RC cars, or a driving rig study.
+- Opponents, traffic, overtaking, race strategy, tyre wear, fuel.
+- Beating a commercial racing AI or a professional driver.
+- Simulator modding as a contribution. Telemetry extraction is a means; it belongs in an implementation chapter.
 
 ---
 
@@ -153,59 +120,74 @@ Named so they cannot creep in:
 
 | # | Risk | Hits | Mitigation |
 | :--- | :--- | :--- | :--- |
-| R1 | No supported way to write control input into AC | G3.2 | Prove input actuation on day one of G3, before any other G3 work. Pick fallback early if it fails. |
-| R2 | Plant/model mismatch dominates; the car cannot follow the plan regardless of planner quality | G3.4, G3.5 | Explicit system-identification step with reported fit error. A tracking controller sits between planner and car; keep it fixed and documented so planner comparisons stay fair. |
-| R3 | Full-scale track → far more polygons → solve time exceeds real-time | G3.3 | Measure constraint count vs track length early. This risk is also **the strongest motivation for the G4 novelty** — do not treat it purely as a problem. |
-| R4 | Free solver is slower than CPLEX, so the port "fails" G1.2 for a reason unrelated to the algorithm | G1.2 | Benchmark ≥ 2 solvers on the same QP before committing. Report solver as a stated variable, not a hidden one. |
-| R5 | AC run-to-run variance is larger than the lap-time gain being claimed | G4.2 | Establish the noise floor from repeated identical laps **before** claiming any improvement. |
-| R6 | The novelty is chosen too early, from intuition instead of profiling | G4 | G4 stays a menu until G1–G3 data exists. This is deliberate, not indecision. |
+| R1 | Not enough laps for stable sector-level importance — the exact reason the prior work stopped here | G2.1, G2.4 | Learning curve early, before the full model is built. If the data cannot support it, that answer is the finding — report it, do not pad the dataset. |
+| R2 | Results depend on an arbitrary micro-sector definition | G1.1, G2.3 | Sweep granularity (coarse → fine) and show which conclusions survive. |
+| R3 | Confounds: mixed cars, setups, and unknown drivers make importance encode the car, not the driver | G1.3, G2.2 | Fix one car and one circuit for the whole thesis. Record driver identity or accept and state the pooling. |
+| R4 | The EA returns a lap no human could drive | G3.2, G4.3 | Feasibility bound defined before the first run, not fitted afterwards. |
+| R5 | Feature importance read as causality | G2.5 | Ablation or intervention before any causal wording. |
+| R6 | The Hojaji 2026 method cannot be reproduced as a comparison baseline (2023 released no code) | G2.3, G3.3 | Check for released code on ingestion. If absent, the baseline is our own global-importance model, and the difference from their exact method is stated. |
+| R7 | The base document's key papers (2024, 2026, and the autonomous-racing set) are not yet in the vault | §0, all of Chapter 2 | Ingest them before any claim rests on them. Until then they are marked *not yet ingested*. |
 
 ---
 
 ## 5. Working Directives
 
-Inherited from [[CLAUDE]], restated because they bind this goal:
+Inherited from [[AGENTS]], restated because they bind this goal:
 
-1. **Zero hallucination.** Every number in this vault carries a source, e.g. `Scheffe2022_SCR.pdf, Fig. 8`. Numbers from our own experiments carry the run that produced them.
-2. **Computational focus.** Never "X is faster". Always how much faster, on what hardware, at what constraint count.
-3. **Gates are gates.** No novelty before validation. An unvalidated port producing a fast lap time proves nothing.
-4. **Report what happened.** A failed port, a failed AC interface, or an extension that loses lap time are all publishable findings if reported honestly. A quietly dropped negative result is not.
+1. **Zero hallucination.** Every number carries a source — a paper and its location, or the script and run that produced it.
+2. **Report the cost.** Dataset size, model, hyperparameters, hardware, and runtime accompany every result. "The model performs well" is not a finding.
+3. **Gates are gates.** No optimization before the model is validated; no improvement claim before the baseline spread is known.
+4. **Report what happened.** "Sector-level importance is not estimable from a dataset this size" is a real answer to the open question, and it is publishable. A quietly dropped negative result is not.
 
 ---
 
 ## 6. Still Undecided
 
-To be filled in as the work starts. Each blocks the roadmap step that needs it.
+Each blocks the step that needs it.
 
-- [ ] QP solver — blocks G1
-- [ ] Algorithm 2 offline vs online — blocks G1
-- [ ] AC state-read interface — blocks G3.1
-- [ ] AC control-write interface — blocks G3.2, **highest risk**
-- [ ] AC car and circuit, fixed for the thesis — blocks G3
-- [ ] Tracking controller between planned trajectory and AC inputs — blocks G3.5
-- [ ] Development/benchmark hardware, documented — blocks every timing number
-- [ ] The novelty parameter(s) — blocks G4, intentionally deferred
+- [ ] Simulator (Assetto Corsa / ACC / iRacing / other) — blocks G1
+- [ ] Telemetry source: our own recorded laps, or public repositories as in [[Hojaji2023_TelemetryML]] `Sec. 2.1` — blocks G1
+- [ ] Car and circuit, fixed for the thesis — blocks G1, G4
+- [ ] Micro-sector definition and count — blocks G1.1
+- [ ] Model family for sector importance — blocks G2
+- [ ] Evolutionary algorithm: representation, operators, library — blocks G3
+- [ ] Human baseline set and its statistic — blocks G4.1
+- [ ] Hardware for every reported runtime — blocks G3.4
 
 ---
 
 ## 7. Revision Log
 
-This goal is provisional. It will change as the adviser reviews it and as G1–G3 produce data. That is expected, not failure — but changes must be **recorded**, not silently applied, or the thesis loses its own history.
+This goal is provisional. Changes are **recorded**, not silently applied.
 
 **How to revise:**
-1. Bump the version in the header (v0.1 → v0.2).
+1. Bump the version in the header.
 2. Add a row below: what changed, why, who asked.
-3. If a gate (G1–G4), a success criterion (S1–S5), or a non-goal changes, say so explicitly in the row. Those are the load-bearing parts.
-4. Never delete a superseded goal. Strike it through and keep it. A dropped direction is evidence of how the work developed, and advisers ask about it.
+3. If a gate, a success criterion, or a non-goal changes, say so explicitly in the row.
+4. Never delete a superseded goal. Strike it through and keep it (see §8).
 
 | Version | Date | Changed | Reason | Source |
 | :--- | :--- | :--- | :--- | :--- |
-| v0.1 | 2026-08-26 | Initial draft: G1 port → G2 validate → G3 Assetto Corsa → G4 novelty | First formalization from [[Scheffe2022_SCR]] and student's stated direction | Student |
+| v0.1 | 2026-08-26 | Initial draft: G1 port SCR to C++ → G2 validate → G3 Assetto Corsa → G4 novelty | First formalization from [[Scheffe2022_SCR]] | Student |
+| v0.2 | 2026-09-11 | **Full rebase.** Topic changed from porting SCR to micro-sector telemetry ML + evolutionary lap optimization for human drivers. All gates G1–G4 replaced, all success criteria S1–S5 replaced, non-goals rewritten (SCR moved to Related Literature). v0.1 gates struck through in §8. | New base document `01_Corpus/thesis new base.md` | Student |
 
-**Open questions to put to the adviser** (these are the parts most likely to move):
+**Open questions for the adviser** (the v0.1 set is void — it was SCR/Assetto-Corsa specific):
 
-- Is Assetto Corsa an acceptable evaluation environment for the degree, or is a hardware/ROS testbed expected? This decides G3 entirely.
-- Is "port + validate + extend" enough novelty, or must the contribution be purely algorithmic? This decides whether G1–G3 are contribution or preamble.
-- Is the G4 novelty allowed to stay undecided until G3 data exists (§4 R6), or must it be committed up front for the proposal?
-- Scope of comparison: is SL the only required baseline, or must other planners be included?
-- Is a negative result on G4 acceptable?
+1. Is the micro-sector extension of Hojaji et al. (2026) enough novelty for the degree, or must the optimization method itself be new?
+2. Must the generated racing line be validated on a live driver, or is validation against recorded human baseline telemetry sufficient?
+3. Is public-repository telemetry (unknown drivers and setups, as in the 2023 paper) acceptable data, or must laps be collected under controlled conditions?
+4. How many circuits are required — one, as in the prior work, or must generalization across tracks be shown?
+5. Is a negative result on G2.4 (dataset too small for stable sector-level importance) an acceptable thesis outcome?
+
+---
+
+## 8. Superseded — v0.1 Gates (SCR port)
+
+Kept for history. **None of this is in scope.** [[Scheffe2022_SCR]] remains a valid source note and a Related Literature entry.
+
+- ~~**G1 — Port:** reimplement the SCR trajectory planner in real-time C++, replacing MATLAB and CPLEX; median solve time ≤ 73 ms with a free QP solver.~~
+- ~~**G2 — Validate:** prove the C++ port is the published algorithm; zero track-constraint violations, recursive feasibility, SL baseline in the same codebase.~~
+- ~~**G3 — Deploy:** drive a car in Assetto Corsa under SCR control; state read, control write, track polygon extraction, vehicle system identification, closed-loop lap.~~
+- ~~**G4 — Extend:** add parameters to SCR that improve lap time against SL and against unmodified SCR without breaking the feasibility guarantee of `Thm. 2`.~~
+
+Reason dropped: the thesis was rebased on `01_Corpus/thesis new base.md` (2026-09-11), which targets human driver performance, not autonomous trajectory planning.

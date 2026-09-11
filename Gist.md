@@ -1,3 +1,5 @@
+> **SUPERSEDED (2026-09-11).** This is the original vault specification, written when the thesis was about optimizing SCR. The vault was rebased on `01_Corpus/thesis new base.md`. Current rules: [AGENTS.md](AGENTS.md). Current anchor: [GOAL.md](GOAL.md). Kept for history only.
+
 # LLM Thesis Repository: SCR Optimization
 
 This repository is designed to strictly converge literature, methodologies, and computational profiling toward drafting a thesis on optimizing the Sequential Convex Restriction (SCR) algorithm for real-time trajectory planning.

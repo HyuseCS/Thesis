@@ -1,6 +1,6 @@
 # Thesis Vault
 
-Obsidian vault for a thesis on optimizing the Sequential Convex Restriction (SCR) algorithm for real-time trajectory planning. Agent rules live in [AGENTS.md](AGENTS.md); the research anchor is [GOAL.md](GOAL.md).
+Obsidian vault for a thesis on micro-sector telemetry analysis for sim-racing lap optimization: build a micro-sector dataset, model sector-level feature importance and corner interdependency, then drive an evolutionary lap optimizer with it and validate against human baseline telemetry. Agent rules live in [AGENTS.md](AGENTS.md); the research anchor is [GOAL.md](GOAL.md).
 
 ## Getting papers in: Zotero pipeline
 
