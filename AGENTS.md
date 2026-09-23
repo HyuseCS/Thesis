@@ -74,6 +74,8 @@ Record findings in the note's *Critique & Optimization Vectors* section, each wi
 | `03_Thematic_Synthesis/` | Concepts aggregated across papers. |
 | `04_Argument_Matrix/matrix.md` | Master comparison table. |
 | `05_Living_Outline/` | The compiling thesis draft. |
+| `06_Datasets/` | Telemetry and other data used by the thesis. |
+| `07_Code/` | Analysis and model code. |
 | `assets/` | Charts and diagrams. |
 
 **How files arrive:** the standard route is the Zotero pipeline — `python scripts/zotero_pull.py` downloads new PDFs from the user's Zotero collection into the drop zone, each with a `<CitationKey>.zotero.json` metadata sidecar and an entry in `01_Corpus/.zotero_state.json` (status `downloaded`). Setup is in [README.md](README.md). When the user asks to "sync zotero", "pull new papers", or "ingest", run the script and then the procedure below for each new paper.
