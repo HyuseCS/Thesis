@@ -5,7 +5,14 @@ description: Write the session handoff to .claude/handoff.md so the next session
 
 # /handoff
 
-## In the main session
+## On claude.ai (no agents, no hooks)
+
+Write the handoff yourself from this conversation, with the template in the agent section below.
+Leave out the facts block and the `.gitignore` step. Give it to the user as a downloadable
+`handoff.md`. Tell the user to replace `handoff.md` in the project knowledge with it, and to save it
+to `.claude/handoff.md` in the repo. Reply with the next step in one line.
+
+## In a Claude Code main session
 
 The `handoff` agent cannot see this conversation. Collect these from this session's work, in plain
 short sentences, and spawn the `handoff` agent with them:
