@@ -1,5 +1,29 @@
 {
   "enabledPlugins": {
     "academic-research-skills@academic-research-skills": true
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh\"", "timeout": 10, "statusMessage": "Loading handoff" }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/handoff-facts.sh\"", "timeout": 10 }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/handoff-facts.sh\"", "timeout": 10, "statusMessage": "Saving handoff facts" }
+        ]
+      }
+    ]
   }
 }
