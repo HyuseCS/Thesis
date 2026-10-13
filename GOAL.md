@@ -1,118 +1,142 @@
 # GOAL — Thesis Anchor
 
-> Working title (TBD): *Micro-Sector Feature Importance and Evolutionary Lap Optimization for Human Sim-Racing Performance*
+> Working title (TBD): *A Learned Microsector-Chained Surrogate for Evolutionary Lap Optimization in Sim Racing*
 >
 > This file is the anchor. Every note, experiment, and chapter in this vault must trace back to a numbered goal below. If a task does not serve G1–G4, it is out of scope.
 >
-> **Status: v0.2 — REBASED.** This supersedes the SCR-port goal of v0.1. The old gates are kept, struck through, in §8. Sequential Convex Restriction is now a Related Literature item, not a build target.
+> **Status: v0.3 — DECISIONS SETTLED (2026-10-13).** Supersedes v0.2. Simulator, data, microsector count, model, optimizer and evaluation design are now fixed (§6). The v0.2 gates are kept, struck through, in §8. The Google Doc "Thesis TODOs" is the source of truth for written thesis text; this file must not contradict it.
+
+**Terminology.** A *microsector* is one individual corner or straight. A *sector* is a larger track portion spanning several microsectors. Use "microsector" for the unit of analysis throughout.
 
 ---
 
 ## 0. Origin
 
-The base document is `01_Corpus/thesis new base.md`. Everything in this section is drawn from it; papers marked *(not yet ingested)* have no source note in this vault yet, so their claims are carried at the base document's word and must be re-verified on ingestion (AGENTS.md §1).
+The original base document is `01_Corpus/thesis new base.md` (2026-09-11). Its problem statement framed the gap as global vs sector-level feature importance. Reading Hojaji et al. (2026) in full narrowed that gap (see Problem statement below and [[Hojaji2026_TelemetryEA]]).
 
-**Literature position.** Most sim-racing optimization work targets autonomous racing agents; integrated optimization frameworks for *human* drivers are comparatively rare (Hojaji et al. 2026; Kabzan et al. 2019; Lee et al. 2025 — *not yet ingested*). Trajectory optimization, RL control, and racing-line generation are framed as autonomous control problems in F1TENTH, TORCS, and full-size racecars (Evans, Engelbrecht, and Jordaan 2023; Garlick and Bradley 2021; Ghignone, Baumann, and Magno 2022; Samak, Samak, and Kandhasamy 2021 — *not yet ingested*). Those approaches give limited insight for improving *human* performance (Hojaji et al. 2026).
+**Literature position.** Most sim-racing optimization work targets autonomous racing agents; integrated optimization frameworks for *human* drivers are comparatively rare (Hojaji et al. 2026; Kabzan et al. 2019; Lee et al. 2025). Trajectory optimization, RL control, and racing-line generation are framed as autonomous control problems (Evans, Engelbrecht, and Jordaan 2023; Garlick and Bradley 2021; Ghignone, Baumann, and Magno 2022; Samak, Samak, and Kandhasamy 2021). Those approaches give limited insight for improving *human* performance (Hojaji et al. 2026).
 
 **The lineage this thesis extends.**
 
 | Work | What it did | Status in vault |
 | :--- | :--- | :--- |
-| Hojaji, Toth, Campbell 2023 | ML on human sim-racing telemetry: k-means performance levels, XGBoost classification, 10-feature ranking (speed, RPM, g_lat, throttle, steer, lane deviation …) | Ingested — [[Hojaji2023_TelemetryML]] |
-| Hojaji et al. 2024 | AI analysis of driving behaviour from telemetry | Not yet ingested |
-| Hojaji, Toth, Campbell 2026 | ML feature importance + evolutionary algorithm to optimize sector-level performance indicators and generate faster, smoother, more stable idealized laps for coaching | Not yet ingested |
+| Hojaji, Toth, Campbell 2023 | ML on human sim-racing telemetry: k-means performance levels, XGBoost classification, 10-feature ranking | Ingested — [[Hojaji2023_TelemetryML]] |
+| Hojaji et al. 2024a (GALA) | Driving-behaviour metrics from 93 lab participants, FAST/SLOW comparison | Ingested — [[Hojaji2024_DrivingBehaviour]] |
+| Hojaji et al. 2024b (*Computers in Human Behavior Reports* 14:100414) | Brands Hatch segment-level dataset (ACC, McLaren 720S GT3); **this thesis's training and test data** (CC BY 4.0) | Not yet ingested |
+| Hojaji, Toth, Campbell 2026 (ICAART) | GA over per-microsector KPI vectors; fitness is a hand-written scaling formula, not a trained model; XGBoost/RF/SVM used only for feature importance | Ingested — [[Hojaji2026_TelemetryEA]] |
 
-**Problem statement.** Hojaji et al. (2026) computed feature importance **globally**, not at the **sector level**, because reliable segment-specific estimation would need a larger dataset. This leaves open which circuit segments most strongly influence optimal lap performance (`thesis new base.md`, Problem statement). The same gap is named one paper earlier: *"It would also be possible to focus on a specific segment rather than the data for the full lap to estimate the lap time. We defer this work as the future work."* ([[Hojaji2023_TelemetryML]], `Sec. 3.2`).
+**Problem statement.** In Hojaji et al. (2026), each microsector's time is scaled independently from a fast-lap baseline; microsectors interact only through a smoothness penalty. Their optimized lap exists only inside that fitness model, so no real driver carries speed from one microsector to the next. The fitness itself must carry that coupling, and nothing in this line of work does.
 
-That open question is this thesis.
+**Novelty statement** (see `08_Project_Files/research-gap/Research_Gap_Assessment.md`):
+> To our knowledge, this is the first work to replace a microsector-independent fitness with a learned, microsector-chained surrogate that propagates boundary speed from human telemetry, and to optimize driver KPIs through it, evaluated by ablation against the independent formulation.
+
+Not new on their own, and not claimed: speed coupling between track sections (lap-time simulation), chained surrogate + evolutionary optimizer as a general method (manufacturing, UQ), per-segment ML models of segment time.
 
 ---
 
 ## 1. Goal Statement
 
-**Build a micro-sector telemetry dataset from a racing simulator, model how sequential track segments influence each other and where speed must be traded between them, then drive an evolutionary optimizer with that sector-level importance to produce faster idealized laps — validated against human baseline telemetry.**
+**Train a learned, microsector-chained surrogate on human telemetry (Hojaji et al. 2024b, Brands Hatch), use it as the fitness function of Hojaji et al.'s (2026) genetic algorithm unchanged, and show by ablation whether the coupled fitness changes the optimized lap compared with a microsector-independent fitness.**
 
-The three objectives of the base document map to G1–G3. G4 is the validation the base document attaches to objective 3, promoted to its own gate because a generated lap that no human could drive is not a result.
-
-Each gate is a gate: **G(n+1) must not start until G(n) passes its exit criteria.**
+The coupled fitness is the only change from the baseline and the sole contribution. Each gate is a gate: **G(n+1) must not start until G(n) passes its exit criteria.**
 
 ---
 
-### G1 — Dataset: micro-sector telemetry
+### G1 — Dataset
 
-*Base objective 1: "construct a micro-sector telemetry dataset by extracting and processing sequential driving data from a racing simulator environment."*
+*Objective 1 (refinement pending in the Google Doc): prepare a microsector telemetry dataset from existing sim racing telemetry (Hojaji et al. 2024b), extended with an external test set recorded in the same simulator.*
+
+Settled:
+- Source: Hojaji et al. 2024b supplementary data, `01_Corpus/data collection setup/segment level data behaviour.csv` (166 drivers, 826 laps). ACC, McLaren 720S GT3, Brands Hatch, recorded Oct 2022 – Jan 2023.
+- Cleaned file: `01_Corpus/data collection setup/segment_level_cleaned.csv` — **817 laps, 165 drivers, M = 19 microsectors** per lap. "Str 0-1(End)" unified to "Str 0-1 (End)"; driver D_045 dropped (all laps had lap-time mismatches); Lap 1 standing starts of P_001, P_010, P_052, P_062 dropped; D_058 Lap 3 kept.
+- Outlier filtering across all laps (drivers have only 1–8 laps, median 5), not per driver.
+- Split: valid laps 70/30 train/test **by driver**; all microsectors of a lap stay together. 10-fold CV on the training set, grouped the same way. Step 2 clustering may use all laps.
+- External test set: our own remotely collected laps (Brands Hatch, ACC v1.10.4, drivers' own rigs, Hojaji's instructions, driver form for hardware). **Never mixed into training.** Mixed hardware is a stated limitation.
 
 Exit criteria:
-- **G1.1 Segmentation defined.** The rule that splits the track into micro-sectors is written down and reproducible: boundary criterion, sector count, and how corners versus straights are handled. Two people running the rule must get the same sectors.
-- **G1.2 Sequence preserved.** Each lap is a *sequence* of micro-sector records, with entry/exit state (at minimum entry speed, exit speed, min speed) carried per sector. Order is data, not metadata — G2 cannot measure interdependency without it.
-- **G1.3 Scale and balance reported.** Number of laps, drivers, and sectors; performance-class counts. [[Hojaji2023_TelemetryML]] carried 475 FAST against 91 SLOW laps (`Table 2`) and never addressed it. Ours is reported before any model is trained.
-- **G1.4 Cleaning documented with counts.** Invalid/pit/outlier laps removed, with before-and-after counts and the exact threshold, per [[Hojaji2023_TelemetryML]] `Sec. 2.2`.
-- **G1.5 Pipeline is in the repo.** Extraction and processing run from committed scripts. No opaque manual step in proprietary tooling — the MoTec i2 Pro math-channel opacity is a stated critique of the prior work, and repeating it would inherit the flaw.
-
-Open decisions (resolve before collecting — see §6): simulator, telemetry source, car and circuit, micro-sector definition.
+- **G1.1** Cleaning documented with before/after counts (done for the main dataset).
+- **G1.2** Each lap is an ordered sequence of 19 microsector records with entry and exit speed.
+- **G1.3** External test set collected, cleaned with the same rules, and its size reported.
+- **G1.4** Pipeline runs from committed scripts in `07_Code/`.
 
 ---
 
-### G2 — Model: sector importance and corner interdependency
+### G2 — Model: the microsector-chained surrogate
 
-*Base objective 2: "develop a predictive machine learning model that quantifies corner interdependencies and identifies optimal speed-tradeoffs across sequential track sectors."*
+*Objective 2 (refinement pending): develop a chained surrogate model that predicts each microsector's time and exit speed from the driver's control KPIs and the entry speed carried over from the previous microsector.*
+
+Settled:
+- **Variables.** Control KPIs (driver inputs) are the only feature-selection candidates and the only GA genes. Entry/apex/exit speed and microsector time are state/outcome variables. v_entry,1 is fixed to the mean fast-lap entry speed at microsector 1.
+- **Candidate pool.** The 8 ready-made driver-input KPIs in the dataset plus driver-input channel statistics (e.g. brake max/mean).
+- **Feature selection.** Per microsector, rank control KPIs against its own time and its exit speed with entry speed as covariate; normalize and average the two importances, then average across microsectors; keep the top **K = 10**, common to all microsectors. Training laps only.
+- **Surrogate.** XGBoost per microsector predicting time and exit speed; v_exit of microsector n feeds v_entry of n+1. Trained on all valid training laps (not Fast laps only).
 
 Exit criteria:
-- **G2.1 Importance with uncertainty.** Sector-level feature importance is estimated with cross-validation and reported with spread, plus per-class precision/recall. A single 70/30 split and one headline accuracy number (the prior work's only classification result, `Sec. 3.2`) is not enough evidence at sector granularity.
-- **G2.2 Interdependency quantified.** The effect of sector *i* on sector *i+1* (and beyond) is reported as a measured effect size with its uncertainty, not asserted. Name the measure before running it.
-- **G2.3 Beats the global baseline.** A lap-level (global) importance model is trained on the same data and compared against the sector-level model. This comparison *is* the gap Hojaji et al. (2026) left open; without it the thesis has no claim.
-- **G2.4 Data sufficiency answered.** The prior work's stated reason for skipping sector-level estimation was dataset size. Report a learning curve: how many laps per sector are needed before importance estimates stabilize. A negative answer here is a publishable finding.
-- **G2.5 Importance is not causality.** Any claim that a sector "causes" lap-time loss states what supports it — correlation, ablation, or intervention — and does not overreach.
+- **G2.1** Grouped 10-fold CV results reported with spread.
+- **G2.2** Final test on held-out drivers: MAE and R² overall and on Fast-cluster laps.
+- **G2.3** Lap rollout on test laps: chained prediction of lap time vs actual, with the rollout error reported (it sets the threshold in G4).
+- **G2.4** External test set scored the same way.
+- **G2.5** Importance is not causality: no causal wording without support.
 
 ---
 
-### G3 — Optimize: evolutionary algorithm driven by sector importance
+### G3 — Optimize: Hojaji's GA with the chained fitness
 
-*Base objective 3, part 1: "optimize overall lap-time performance by integrating the sector-importance model with an evolutionary algorithm."*
+*Objective 3, part 1 (refinement pending): optimize lap time by using the chained surrogate as the fitness function of a genetic algorithm.*
+
+Settled — Hojaji et al. (2026) settings and initialization, unchanged:
+- Population 120, 200 generations, two-point crossover 0.8, Gaussian mutation rate 0.15 with sigma 0.05, lambda 0.1, random initialization within the observed KPI ranges of the training laps.
+- Genome: 19 microsectors × 10 KPIs = **190 genes**.
+- Fitness = chained lap time + lambda × penalty.
+- Hojaji's 90–105 % microsector-time clamp is **not** used.
+- Differential evolution is dropped (future work). No optimizer-comparison arms.
 
 Exit criteria:
-- **G3.1 Integration is real.** Sector importance enters the search explicitly (objective terms, weighting, or search-space shaping) and where it enters is documented.
-- **G3.2 Feasibility defined up front.** The bound that keeps a generated lap physically attainable is stated *before* optimization runs, and every reported lap satisfies it. An optimizer with no bound will return an impossible lap and call it optimal.
-- **G3.3 Ablation, not a demo.** Three arms on the same data: EA + sector importance, EA + global importance, EA alone. One configuration producing one fast lap is not a result.
-- **G3.4 Cost reported.** Population, generations, wall-clock time, and hardware. [[Hojaji2023_TelemetryML]] reports no computational cost at all; this vault does not repeat that (AGENTS.md §2).
+- **G3.1** Both fitness variants run with paired seeds.
+- **G3.2** Cost reported: runs, wall-clock time, hardware.
 
 ---
 
-### G4 — Validate against human baseline telemetry
+### G4 — Evaluate: ablation and validation
 
-*Base objective 3, part 2: "validating the generated racing lines against human baseline telemetry."*
+*Objective 3, part 2 (refinement pending): validate the optimized microsector KPI targets against human telemetry from the fastest drivers.*
+
+Settled:
+- **Ablation.** Coupled (chained) fitness vs microsector-independent fitness (entry speed = mean fast-lap entry speed per microsector).
+- **Common judge.** Both variants' best laps are re-scored by the one chained surrogate, validated by the lap rollout on test laps.
+- **Statistics.** Paired seeds, Wilcoxon signed-rank test. A difference counts only if it is larger than the rollout error (G2.3).
+- The human-lap vs Hojaji EA lap comparison is **dropped**.
 
 Exit criteria:
-- **G4.1 Baseline fixed first.** The human baseline is defined before optimization results exist: which laps, which drivers, which summary statistic, and the run-to-run spread. Improvement is claimed against that spread, not against a single best lap.
-- **G4.2 Improvement measured.** Optimized lap time versus the baseline, with variance. An improvement smaller than the human lap-to-lap standard deviation is not an improvement.
-- **G4.3 Attainability shown.** The generated line stays within track limits and within the vehicle behaviour actually observed in the telemetry. A line the data never demonstrates is a claim about a car, not about a driver.
-- **G4.4 Coaching read-out.** The result is expressed as which micro-sectors carry the available time — the practical output the base document points at. A number with no sector attached does not help a driver.
+- **G4.1** Ablation result reported with the test statistic and effect size.
+- **G4.2** Optimized KPI targets compared with the Fast cluster's distribution per microsector (percentile or z-score; inside the observed range or not), for both variants.
+- **G4.3** Limitation stated: the common judge is the proposed surrogate itself, and Hojaji's published lap times are not compared directly.
+- **G4.4** Coaching read-out: which microsectors carry the difference between variants.
 
 ---
 
-## 2. Success Criteria — the whole thesis in one table
+## 2. Success Criteria
 
 | ID | Claim to be earned | Measured by | Threshold |
 | :--- | :--- | :--- | :--- |
-| S1 | A reproducible micro-sector telemetry dataset exists | laps, drivers, sectors, class balance, cleaning counts | all reported; pipeline reruns from committed scripts |
-| S2 | Sector-level importance is estimable from our data | stability of importance under cross-validation | spread reported; stabilization point identified |
-| S3 | Sector-level beats lap-level importance | model comparison on the same data (G2.3) | sector model better on the stated metric, or the negative result reported |
-| S4 | Corner interdependency is measurable | effect size of sector *i* on sector *i+1* | effect reported with uncertainty |
-| S5 | Importance-guided EA produces a faster attainable lap | optimized lap time vs human baseline, n runs | gain > baseline standard deviation, and feasible under G3.2 |
+| S1 | Clean, reproducible microsector dataset | laps, drivers, microsectors, cleaning counts | 817 laps / 165 drivers / M = 19 reported; scripts committed |
+| S2 | The chained surrogate predicts held-out laps | MAE, R², lap rollout error on test drivers | reported overall and on Fast-cluster laps |
+| S3 | The surrogate holds on independent laps | same metrics on the external test set | reported, with hardware caveat |
+| S4 | Coupling changes the optimized lap | paired ablation, Wilcoxon | difference larger than rollout error, or the negative result reported |
+| S5 | Optimized targets are plausible for humans | position within the Fast cluster's distribution per microsector | reported for both variants |
 
 ---
 
 ## 3. Non-Goals
 
-Named so they cannot creep in:
-
-- Building an autonomous racing agent or a real-time onboard controller.
-- Porting, reimplementing, or optimizing SCR, SL, or any MPC planner. SCR is Related Literature (§0, [[Scheffe2022_SCR]]), not a deliverable.
-- Real-time execution. This work is offline analysis and offline optimization.
-- Physical hardware, RC cars, or a driving rig study.
-- Opponents, traffic, overtaking, race strategy, tyre wear, fuel.
-- Beating a commercial racing AI or a professional driver.
-- Simulator modding as a contribution. Telemetry extraction is a means; it belongs in an implementation chapter.
+- Building an autonomous racing agent or a real-time controller.
+- Porting or optimizing SCR, SL, or any MPC planner (Related Literature only, [[Scheffe2022_SCR]]).
+- Comparing optimizers (DE, CMA-ES, etc.) — future work.
+- Full replication of Hojaji et al. (2026) — no code was released.
+- Claiming simulator telemetry equals real-world telemetry. The context is competitive sim racing as an esport; evidence that simulator measures reflect real skill is supporting only.
+- Driving the optimized lap with a human, or comparing it with Hojaji's published EA lap time.
+- Multiple tracks or cars.
+- Opponents, traffic, strategy, tyre wear, fuel.
 
 ---
 
@@ -120,68 +144,67 @@ Named so they cannot creep in:
 
 | # | Risk | Hits | Mitigation |
 | :--- | :--- | :--- | :--- |
-| R1 | Not enough laps for stable sector-level importance — the exact reason the prior work stopped here | G2.1, G2.4 | Learning curve early, before the full model is built. If the data cannot support it, that answer is the finding — report it, do not pad the dataset. |
-| R2 | Results depend on an arbitrary micro-sector definition | G1.1, G2.3 | Sweep granularity (coarse → fine) and show which conclusions survive. |
-| R3 | Confounds: mixed cars, setups, and unknown drivers make importance encode the car, not the driver | G1.3, G2.2 | Fix one car and one circuit for the whole thesis. Record driver identity or accept and state the pooling. |
-| R4 | The EA returns a lap no human could drive | G3.2, G4.3 | Feasibility bound defined before the first run, not fitted afterwards. |
-| R5 | Feature importance read as causality | G2.5 | Ablation or intervention before any causal wording. |
-| R6 | The Hojaji 2026 method cannot be reproduced as a comparison baseline (2023 released no code) | G2.3, G3.3 | Check for released code on ingestion. If absent, the baseline is our own global-importance model, and the difference from their exact method is stated. |
-| R7 | The base document's key papers (2024, 2026, and the autonomous-racing set) are not yet in the vault | §0, all of Chapter 2 | Ingest them before any claim rests on them. Until then they are marked *not yet ingested*. |
+| R1 | Rollout error accumulates across 19 chained microsectors | G2.3, G4 | Report rollout error; differences smaller than it do not count. |
+| R2 | The GA exploits surrogate errors outside the data | G3, G4.2 | Initialization within observed KPI ranges; G4.2 range check. |
+| R3 | Few laps per driver (1–8) | G1, G2 | Split and CV grouped by driver; filter across all laps. |
+| R4 | Mixed hardware in the external test set | G1.3, G2.4 | Driver form records hardware; stated limitation. |
+| R5 | Common judge is the proposed model | G4 | Stated limitation (G4.3). |
+| R6 | Data from an older ACC version than the external test set | G2.4 | Stated limitation. |
 
 ---
 
 ## 5. Working Directives
 
-Inherited from [[AGENTS]], restated because they bind this goal:
+Inherited from [[AGENTS]]:
 
-1. **Zero hallucination.** Every number carries a source — a paper and its location, or the script and run that produced it.
-2. **Report the cost.** Dataset size, model, hyperparameters, hardware, and runtime accompany every result. "The model performs well" is not a finding.
-3. **Gates are gates.** No optimization before the model is validated; no improvement claim before the baseline spread is known.
-4. **Report what happened.** "Sector-level importance is not estimable from a dataset this size" is a real answer to the open question, and it is publishable. A quietly dropped negative result is not.
+1. **Zero hallucination.** Every number carries a source.
+2. **Report the cost.** Dataset size, model, hyperparameters, hardware, runtime.
+3. **Gates are gates.**
+4. **Report what happened**, including negative results.
 
 ---
 
-## 6. Still Undecided
+## 6. Decisions
 
-Each blocks the step that needs it.
+All v0.2 open decisions are resolved:
 
-- [ ] Simulator (Assetto Corsa / ACC / iRacing / other) — blocks G1
-- [ ] Telemetry source: our own recorded laps, or public repositories as in [[Hojaji2023_TelemetryML]] `Sec. 2.1` — blocks G1
-- [ ] Car and circuit, fixed for the thesis — blocks G1, G4
-- [ ] Micro-sector definition and count — blocks G1.1
-- [ ] Model family for sector importance — blocks G2
-- [ ] Evolutionary algorithm: representation, operators, library — blocks G3
-- [ ] Human baseline set and its statistic — blocks G4.1
-- [ ] Hardware for every reported runtime — blocks G3.4
+- [x] Simulator: Assetto Corsa Competizione (main data from an older version; external test set on v1.10.4)
+- [x] Telemetry source: Hojaji et al. 2024b dataset for training/testing; own laps as external test set only
+- [x] Car and circuit: McLaren 720S GT3, Brands Hatch
+- [x] Microsectors: M = 19 (the dataset's segments)
+- [x] Model: microsector-chained XGBoost surrogate; top K = 10 control KPIs
+- [x] Evolutionary algorithm: Hojaji et al. (2026) GA, settings unchanged
+- [x] Evaluation: coupled vs independent fitness ablation, common judge, Wilcoxon
+- [ ] Hardware for every reported runtime — record when experiments run
+
+Still open (tracked in `08_Project_Files/todos/`): Objective wording in the Google Doc, data collection placeholders and driver instruction sheet, the optimized-lap validation step and common-judge limitation in the methodology text.
 
 ---
 
 ## 7. Revision Log
 
-This goal is provisional. Changes are **recorded**, not silently applied.
-
-**How to revise:**
-1. Bump the version in the header.
-2. Add a row below: what changed, why, who asked.
-3. If a gate, a success criterion, or a non-goal changes, say so explicitly in the row.
-4. Never delete a superseded goal. Strike it through and keep it (see §8).
+Changes are **recorded**, not silently applied. Bump the version, add a row, never delete a superseded goal (strike it through in §8).
 
 | Version | Date | Changed | Reason | Source |
 | :--- | :--- | :--- | :--- | :--- |
 | v0.1 | 2026-08-26 | Initial draft: G1 port SCR to C++ → G2 validate → G3 Assetto Corsa → G4 novelty | First formalization from [[Scheffe2022_SCR]] | Student |
-| v0.2 | 2026-09-11 | **Full rebase.** Topic changed from porting SCR to micro-sector telemetry ML + evolutionary lap optimization for human drivers. All gates G1–G4 replaced, all success criteria S1–S5 replaced, non-goals rewritten (SCR moved to Related Literature). v0.1 gates struck through in §8. | New base document `01_Corpus/thesis new base.md` | Student |
-
-**Open questions for the adviser** (the v0.1 set is void — it was SCR/Assetto-Corsa specific):
-
-1. Is the micro-sector extension of Hojaji et al. (2026) enough novelty for the degree, or must the optimization method itself be new?
-2. Must the generated racing line be validated on a live driver, or is validation against recorded human baseline telemetry sufficient?
-3. Is public-repository telemetry (unknown drivers and setups, as in the 2023 paper) acceptable data, or must laps be collected under controlled conditions?
-4. How many circuits are required — one, as in the prior work, or must generalization across tracks be shown?
-5. Is a negative result on G2.4 (dataset too small for stable sector-level importance) an acceptable thesis outcome?
+| v0.2 | 2026-09-11 | **Full rebase.** Topic changed from porting SCR to micro-sector telemetry ML + evolutionary lap optimization for human drivers. | New base document `01_Corpus/thesis new base.md` | Student |
+| v0.3 | 2026-10-13 | **Decisions settled.** Gap narrowed from sector-level vs global importance to a learned microsector-chained fitness. Data switched to Hojaji et al. 2024b (817 laps, 165 drivers, M = 19); own laps external test only. GA unchanged; clamp and DE dropped. Three-arm ablation replaced by coupled vs independent fitness; human-baseline lap comparison dropped. All gates G1–G4 and S1–S5 replaced; v0.2 gates struck through in §8. | Methodology decisions 2026-09-25 to 2026-10-03, recorded in the Google Doc "Thesis TODOs" | Student |
 
 ---
 
-## 8. Superseded — v0.1 Gates (SCR port)
+## 8. Superseded Gates
+
+### v0.2 (micro-sector importance) — superseded 2026-10-13
+
+- ~~**G1 — Dataset:** record our own micro-sector telemetry dataset; simulator, car, circuit and micro-sector rule undecided.~~
+- ~~**G2 — Model:** sector-level feature importance vs a global importance model (G2.3), learning curve for data sufficiency (G2.4), interdependency effect size.~~
+- ~~**G3 — Optimize:** three-arm ablation: EA + sector importance, EA + global importance, EA alone.~~
+- ~~**G4 — Validate:** optimized lap time vs a human baseline lap and its lap-to-lap spread.~~
+
+Reason dropped: the global-vs-sector-importance gap was narrowed after reading Hojaji et al. (2026) in full; the dataset question was answered by the Hojaji et al. 2024b release; see v0.3 in §7.
+
+### v0.1 (SCR port) — superseded 2026-09-11
 
 Kept for history. **None of this is in scope.** [[Scheffe2022_SCR]] remains a valid source note and a Related Literature entry.
 
