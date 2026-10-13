@@ -1,10 +1,50 @@
 # AGENTS.md — Operating Guidelines for LLM Agents
 
-This is a thesis vault, not a codebase. It converges literature, methodology, and measurement toward one thesis on **micro-sector telemetry analysis for sim-racing lap optimization**: build a micro-sector dataset, model sector-level feature importance and corner interdependency, and drive an evolutionary lap optimizer with it, validated against human baseline telemetry.
+This is a thesis vault, not a codebase. It converges literature, methodology, and measurement toward one thesis: a **learned, microsector-chained surrogate** trained on human sim-racing telemetry, used as the fitness function of an evolutionary lap optimizer, and evaluated by ablation against a microsector-independent fitness.
 
 The vault was rebased on 2026-09-11. Its earlier subject — porting the Sequential Convex Restriction (SCR) planner to C++ — is now Related Literature only. See [[GOAL]] §8.
 
 Read [[GOAL]] before doing anything else. It is the anchor. Every action must trace to a goal in it.
+
+---
+
+## 0. Settled Decisions (read first; these override older notes in this vault)
+
+Status as of 2026-10-13. Where `GOAL.md`, `05_Living_Outline/` or older notes disagree, this section wins. The Google Doc "Thesis TODOs" is the source of truth for written thesis text; do not contradict it.
+
+**Terminology**
+- A *microsector* is one individual corner or straight. Never call these "sectors"; a sector is a larger track portion spanning several microsectors.
+
+**Data**
+- Training and testing use the Hojaji et al. (2024) Brands Hatch dataset (ACC, McLaren 720S GT3, recorded Oct 2022-Jan 2023; Computers in Human Behavior Reports 14:100414, CC BY 4.0, cite on reuse). File: `01_Corpus/data collection setup/segment_level_cleaned.csv`.
+- Cleaned dataset: **817 laps, 165 drivers, M = 19 microsectors** per lap. Dropped: driver D_045 (lap-time mismatches) and the Lap 1 standing starts of P_001, P_010, P_052, P_062. "Str 0-1(End)" unified to "Str 0-1 (End)".
+- Our own remotely collected laps (Brands Hatch, ACC v1.10.4, home rigs, Hojaji's instructions) are an **external test set only**. Never mix them into training.
+- Split: 70/30 train/test **by driver**; all microsectors of a lap stay together. 10-fold CV on the training set, grouped the same way. The test set is used only for the final surrogate test and the lap rollout.
+- The Sebring / Ford Mustang GT3 files in `06_Datasets/` are pilot data, not thesis data.
+
+**Variables and features**
+- Genes are control KPIs (driver inputs) only. Entry/apex/exit speed and microsector time are state/outcome variables, not genes.
+- v_entry,1 is fixed to the mean fast-lap entry speed at microsector 1.
+- Feature selection: per microsector, rank control KPIs against its time and exit speed (entry speed as covariate), average the two importances, average across microsectors, keep the top **K = 10** common to all microsectors. Training laps only.
+
+**Model and optimizer**
+- Surrogate: microsector-chained XGBoost, trained on all valid training laps. This is the first learned surrogate in this line of work (Hojaji et al. 2026 used a hand-written scaling formula).
+- Optimizer: Hojaji et al. (2026)'s GA with their exact settings: population 120, 200 generations, two-point crossover 0.8, Gaussian mutation rate 0.15 with sigma 0.05, lambda 0.1, random initialization within observed KPI ranges of the training laps. 19 x 10 = 190 genes.
+- Hojaji's 90-105% microsector-time clamp is **not** used.
+- Differential evolution is dropped (future work only). Do not add optimizer-comparison arms.
+
+**Evaluation**
+- Ablation: coupled (chained) fitness vs a microsector-independent fitness (entry speed = mean fast-lap entry speed per microsector). Both variants' best laps are re-scored by the one chained surrogate (common judge), validated by lap rollout on test laps. Paired seeds, Wilcoxon test; a difference counts only if it exceeds rollout error.
+- The human-lap vs Hojaji EA lap comparison is dropped.
+
+**Scope**
+- The thesis does not claim simulator telemetry equals real-world telemetry. The context is competitive sim racing as an esport.
+- Full replication of Hojaji et al. is out of scope (no code released).
+
+**Commits and files**
+- No AI attribution anywhere: no `Co-Authored-By` trailers, no session links, no "Generated with ..." lines in commits, PR descriptions or files.
+
+The methodology, literature review, research gap, reviewer notes, todos and references live in `08_Project_Files/` (mirrored from the project's shared folder).
 
 ---
 
@@ -76,6 +116,7 @@ Record findings in the note's *Critique & Optimization Vectors* section, each wi
 | `05_Living_Outline/` | The compiling thesis draft. |
 | `06_Datasets/` | Telemetry and other data used by the thesis. |
 | `07_Code/` | Analysis and model code. |
+| `08_Project_Files/` | Thesis working files: methodology, literature review, research gap, reviewer notes, todos, references (.bib). |
 | `assets/` | Charts and diagrams. |
 
 **How files arrive:** the standard route is the Zotero pipeline — `python scripts/zotero_pull.py` downloads new PDFs from the user's Zotero collection into the drop zone, each with a `<CitationKey>.zotero.json` metadata sidecar and an entry in `01_Corpus/.zotero_state.json` (status `downloaded`). Setup is in [README.md](README.md). When the user asks to "sync zotero", "pull new papers", or "ingest", run the script and then the procedure below for each new paper.
