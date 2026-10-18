@@ -24,6 +24,7 @@ Hojaji et al. (2026) used a genetic algorithm (GA) to generate an "idealized" la
 - Hojaji et al. (2023, 2024) showed telemetry KPIs predict driver skill. Hojaji et al. (2026) moved to optimization with a GA.
 - **Gap 1 (stated by Hojaji 2026):** feature importance was computed globally, not per microsector, because they lacked data.
 - **Gap 2 (follows from their fitness equation):** each microsector's time depends only on its own KPIs; no speed carries over between microsectors. Penalties limit unrealistic values and sudden jumps but carry no state.
+- Careful with Gap 1: the Brands Hatch dataset (817 laps) is about the same size as Hojaji's Laguna Seca data (865 laps), so don't claim to solve their data limitation. See question 16.
 - The two gaps are linked: to rank KPIs per microsector you must predict its time and exit speed, which both depend on entry speed. So per-microsector feature selection falls out of the chained surrogate.
 - **Why coaching systems (Bae et al., 2025) don't need coupling:** a real driver executes their advice and the simulator's physics enforces the coupling. An optimized lap exists only inside the fitness model, so the model itself must carry it. Don't call Bae's approach flawed.
 - **What we do NOT claim as novel:** the physical coupling itself, chaining surrogates (used in manufacturing, e.g. Geiger et al., 2023), per-segment ML time models, or diagnosing carried-over speed. The novelty is the combination: a learned, chained surrogate as the GA fitness for human driver KPIs, plus measuring its effect by ablation.
@@ -98,6 +99,7 @@ Hojaji et al. (2026) used a genetic algorithm (GA) to generate an "idealized" la
 12. **Does this help real racing drivers?** Not claimed. Results apply to competitive sim racing in ACC.
 13. **What if coupling makes no difference?** That is still a result: it would show independent scoring is adequate for this setup. The Wilcoxon test and rollout threshold tell us either way.
 14. **How is the result useful to a driver?** Each optimized KPI target is compared with the Fast-cluster median and turned into a per-microsector coaching instruction.
+16. **Hojaji said per-microsector importance needs more data, yet you use their own (similar-sized) dataset. How?** We don't claim to have fixed that. The surrogate is one model pooled across all 19 microsectors (about 570 training laps × 19 = ~10,800 rows, microsector index as an input) instead of 19 small models, and the GA genes are the top 10 averaged across microsectors, so no decision rests on a single microsector's ranking. Per-microsector importances are reported as descriptive, with their bootstrap rank stability shown so the reader can see which are reliable. The main gap is the coupling; per-microsector importance is a by-product.
 15. **Why cluster by lap time only?** It follows Hojaji et al. (2024); the Fast cluster is just a reference for entry speeds and coaching comparisons.
 
 ## 10. Mismatches to fix in the doc before presenting
