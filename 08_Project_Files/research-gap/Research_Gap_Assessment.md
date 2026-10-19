@@ -48,7 +48,7 @@ Source: https://www.scitepress.org/Papers/2026/146096/146096.pdf. Check page num
    - LightGBM predicts per-segment time and response metrics from setup parameters. Summing segments reconstructs lap time: "reconstructed held-out file-level lap time with 0.223 s mean absolute error".
    - Segment rows use "setup parameters, phase/context identifiers, and track-position segment information". Entry speed and previous-segment state are not mentioned.
    - The model is not the optimizer's fitness: "Telemetry-derived quantities were not used to generate the winning setup".
-   - **How the proposal differs:** it chains segments, uses driver KPIs rather than setup, and puts the model inside DE. **This is the paper a reviewer is most likely to raise. Cite it and set yourself apart from it.**
+   - **How the proposal differs:** it chains segments, uses driver KPIs rather than setup, and puts the model inside the GA. **This is the paper a reviewer is most likely to raise. Cite it and set yourself apart from it.**
 2. **Nunes, T., Medeiros, M., Silva, M., Bittencourt, J.C.N., Costa, D.G. & Silva, I. (2026).** Explaining Driver Behavior in Sim Racing with Shannon Entropy and LLM Feedback. *Entropy* 28(9):960. https://www.mdpi.com/1099-4300/28/9/960 [full*, re-checked by me]
    - Uses iRacing, with corner-aligned sectors compared against a proficiency-matched reference driver. Section 4.2 names "a speed deficit carried over from the previous corner".
    - Everything is rule-based: "A deterministic, physics-informed heuristic layer then identifies kinematic performance gaps". There is no learned model and no optimizer.
@@ -92,6 +92,8 @@ Source: https://www.scitepress.org/Papers/2026/146096/146096.pdf. Check page num
     - XGBoost as the surrogate inside an EA is already published, so the model choice is not a contribution.
 
 ## DE over GA: literature support exists, but mostly general
+**Superseded 2026-10-18:** DE is dropped and the thesis uses Hojaji et al.'s (2026) GA unchanged, with no optimizer-comparison arm (AGENTS.md §0). The sources below are kept for the future-work section only.
+
 Hojaji gives no justification for choosing a GA, so the burden is only on you to justify DE.
 - **Only domain-specific comparison found:** Molina-Pérez et al. (2025), "Simplified Racing Trajectory Optimization via Evolutionary Algorithms", ISCMI 2025 [abstract]: "DE outperforms GA in terms of solution quality and robustness, achieving lower lap times with reduced variance." It optimizes racing-line geometry with a physics evaluator. The author list and DOI still need confirming.
 - **General benchmarks:** Storn & Price (1997), J. Global Optim. 11:341–359: DE is designed for nonlinear, non-differentiable continuous functions, which suits a piecewise-constant XGBoost fitness. Vesterstrom & Thomsen (2004), CEC: DE generally beat PSO and an EA across 34 benchmarks, **but lost on noisy functions**, and surrogate error behaves like noise. Das & Suganthan (2011), IEEE TEVC; Das, Mullick & Suganthan (2016), Swarm Evol. Comput.
@@ -100,13 +102,9 @@ Hojaji gives no justification for choosing a GA, so the burden is only on you to
   - An examiner may ask "why not CMA-ES?", which is rotation-invariant by design (Hansen, arXiv:1604.00772).
   - Tree ensembles can be optimized exactly as a MIP (Mišić 2020, *Operations Research*), although chaining makes that harder.
   - No free lunch applies.
-- **Recommendation:** add an optimizer arm to the ablation, running Hojaji's GA against DE (and CMA-ES if time allows) on the same surrogate across several seeds. The DE claim then rests on your own evidence instead of analogy.
-
-**Draft justification paragraph (adapt it; confirm the Molina-Pérez details first):**
-> We replace the genetic algorithm of Hojaji et al. (2026) with Differential Evolution (DE), a derivative-free optimizer designed for continuous, possibly non-differentiable objectives (Storn & Price, 1997), which suits the piecewise-constant fitness of a gradient-boosted tree surrogate. DE has generally outperformed conventional evolutionary algorithms on numerical benchmarks (Vesterstrom & Thomsen, 2004; Das et al., 2016), and in a racing-trajectory study it achieved lower lap times with lower variance than a GA (Molina-Pérez et al., 2025). Because our surrogate passes exit speed from each microsector to the next, the KPIs of adjacent microsectors are coupled and the problem is non-separable. Coordinate-wise GA operators are known to degrade on such problems (Salomon, 1996; Iorio & Li, 2004), whereas DE's difference-vector mutation is rotation invariant; we use a high crossover rate (CR ≈ 0.9) to preserve this property (Opara & Arabas, 2019). Consistent with the no-free-lunch theorem, we treat this choice as a hypothesis and compare DE against the original GA empirically.
 
 ## Risks examiners are likely to raise
-1. **Compounding error along 20 chained predictions.** XGBoost gives no uncertainty estimate, so DE may exploit extrapolation. Bound the search to the observed data range (Wang et al. 2019, already in A1), or use ensemble variance as a penalty. The linked-emulator and function-network literature treats this as an expected concern.
+1. **Compounding error along 19 chained predictions.** XGBoost gives no uncertainty estimate, so the GA may exploit extrapolation. Bound the search to the observed data range (Wang et al. 2019, already in A1), or use ensemble variance as a penalty. The linked-emulator and function-network literature treats this as an expected concern.
 2. **Straw-man ablation.** Keep Hojaji's transition penalty in the independent arm.
 3. **Hojaji's group is active.** They have a cross-track SSRN preprint and a stated aim of real-time ML–EA coaching. Re-run this search before submission.
 4. **Bae et al. 2025.** Resolved 2026-09-26: its features include per-corner entry and exit speed, and its advice is applied by a real driver, so the coupling is enforced physically. Position against it as described in entry 3 above; do not present it as a flawed method.
