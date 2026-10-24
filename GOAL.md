@@ -4,7 +4,7 @@
 >
 > This file is the anchor. Every note, experiment, and chapter in this vault must trace back to a numbered goal below. If a task does not serve G1–G4, it is out of scope.
 >
-> **Status: v0.5 — synced with the Google Doc (2026-10-24).** Supersedes v0.4. v0.5 adopts the Doc title and the method details listed in §7. Simulator, data, microsector count, model, optimizer and evaluation design are fixed (§6). v0.4 adds the lap filter, the external test set size, the Pearson + TreeSHAP feature selection and the surrogate tuning (§7). The v0.2 gates are kept, struck through, in §8. The Google Doc "Thesis TODOs" is the source of truth for written thesis text; this file must not contradict it.
+> **Status: v0.5 — synced with the Google Doc (2026-10-24).** Supersedes v0.4. v0.5 adopts the Doc title and the method details listed in §7. Simulator, data, microsector count, model, optimizer and evaluation design are fixed (§6). v0.4 adds the lap filter, the external test set size, the Pearson + TreeSHAP feature selection and the surrogate tuning (§7). The v0.2 gates are kept, struck through, in §8. The Google Doc "Thesis TODOs" is the source of truth for written thesis text, but only its tabs "refined methodology", "literature review" and "for consultation #2"; ignore the other tabs. This file must not contradict them.
 
 **Terminology.** A *microsector* is one individual corner or straight. A *sector* is a larger track portion spanning several microsectors. Use "microsector" for the unit of analysis throughout.
 
@@ -186,7 +186,7 @@ All v0.2 open decisions are resolved:
 - [x] Evaluation: coupled vs independent fitness ablation, common judge, Wilcoxon
 - [ ] Hardware for every reported runtime — record when experiments run
 
-Still open (tracked in `08_Project_Files/todos/`): Objective wording in the Google Doc (the only objectives in the Doc are in the "deprecated 2" tab), the driver instruction sheet, and the common-judge limitation in the methodology text. The driver form is done (Doc, Appendix 1).
+Still open (tracked in `08_Project_Files/todos/`): Objective wording (none of the three Doc tabs we use states the objectives yet), the driver instruction sheet, and the common-judge limitation in the methodology text. The driver form is done (Doc, Appendix 1).
 
 ---
 

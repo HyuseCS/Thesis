@@ -10,7 +10,7 @@ Read [[GOAL]] before doing anything else. It is the anchor. Every action must tr
 
 ## 0. Settled Decisions (read first; these override older notes in this vault)
 
-Status as of 2026-10-24 (synced with the Google Doc; snapshot `08_Project_Files/Thesis_TODOs_Doc_2026-10-24.md`). Where `GOAL.md`, `05_Living_Outline/` or older notes disagree, this section wins. The Google Doc "Thesis TODOs" is the source of truth for written thesis text; do not contradict it.
+Status as of 2026-10-24 (synced with the Google Doc; snapshot `08_Project_Files/Thesis_TODOs_Doc_2026-10-24.md`). Where `GOAL.md`, `05_Living_Outline/` or older notes disagree, this section wins. The Google Doc "Thesis TODOs" is the source of truth for written thesis text, but only its tabs "refined methodology", "literature review" and "for consultation #2"; ignore the other tabs. Do not contradict those three tabs.
 
 **Title**
 - *Extending an ML-EA Framework with a Microsector-Chained Surrogate Model for Sim Racing Performance Optimization* (Google Doc, tab "for consultation #2").

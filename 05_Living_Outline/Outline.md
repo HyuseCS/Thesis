@@ -1,6 +1,6 @@
 # Thesis Outline — Extending an ML-EA Framework with a Microsector-Chained Surrogate Model for Sim Racing Performance Optimization
 
-Anchor: [[GOAL]] (v0.5). Source of truth for written text: the Google Doc "Thesis TODOs" (snapshot `08_Project_Files/Thesis_TODOs_Doc_2026-10-24.md`). Literature table: [[matrix]].
+Anchor: [[GOAL]] (v0.5). Source of truth for written text: the Google Doc "Thesis TODOs", tabs "refined methodology", "literature review" and "for consultation #2" only (snapshot `08_Project_Files/Thesis_TODOs_Doc_2026-10-24.md`). Literature table: [[matrix]].
 
 ## Chapter 1 — Introduction
 1.1 Background: sim racing as an esport and a measured performance domain
