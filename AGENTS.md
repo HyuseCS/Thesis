@@ -10,7 +10,10 @@ Read [[GOAL]] before doing anything else. It is the anchor. Every action must tr
 
 ## 0. Settled Decisions (read first; these override older notes in this vault)
 
-Status as of 2026-10-18. Where `GOAL.md`, `05_Living_Outline/` or older notes disagree, this section wins. The Google Doc "Thesis TODOs" is the source of truth for written thesis text; do not contradict it.
+Status as of 2026-10-24 (synced with the Google Doc; snapshot `08_Project_Files/Thesis_TODOs_Doc_2026-10-24.md`). Where `GOAL.md`, `05_Living_Outline/` or older notes disagree, this section wins. The Google Doc "Thesis TODOs" is the source of truth for written thesis text; do not contradict it.
+
+**Title**
+- *Extending an ML-EA Framework with a Microsector-Chained Surrogate Model for Sim Racing Performance Optimization* (Google Doc, tab "for consultation #2").
 
 **Terminology**
 - A *microsector* is one individual corner or straight. Never call these "sectors"; a sector is a larger track portion spanning several microsectors.
@@ -21,21 +24,24 @@ Status as of 2026-10-18. Where `GOAL.md`, `05_Living_Outline/` or older notes di
 - Our own remotely collected laps (Brands Hatch, ACC v1.10.4, home rigs, Hojaji's instructions) are an **external test set only**. Never mix them into training, feature selection or tuning. Size: **10 drivers x 30 clean timed laps**; report external results per driver as well as pooled, and state the small driver count as a limitation.
 - Lap filter: remove in/out-laps, standing starts, invalid laps and lap-time mismatches, then laps with |z| > 3 on lap time across all laps (not per driver). Applied to the main dataset and, separately, to the external laps. The 817 count is pre-|z|-filter; final counts are reported after filtering.
 - Split: 70/30 train/test **by driver**; all microsectors of a lap stay together. 10-fold CV on the training set, grouped the same way. The test set is used only for the final surrogate test and the lap rollout.
+- Clustering: K-Means on the lap times of all valid main-dataset laps, k by Elbow method and Silhouette coefficient. The fastest cluster is the Fast reference whatever k is. All fast-lap values used by the GA (entry speeds, KPI medians) come from Fast-cluster **training** laps only.
 - The Sebring / Ford Mustang GT3 files in `06_Datasets/` are pilot data, not thesis data.
 
 **Variables and features**
 - Genes are control KPIs (driver inputs) only. Entry/apex/exit speed and microsector time are state/outcome variables, not genes.
-- v_entry,1 is fixed to the mean fast-lap entry speed at microsector 1.
+- v_entry,1 is fixed to the mean entry speed of the Fast-cluster training laps at microsector 1.
+- Car-response channels (speed, accelerations, lane deviation, understeer/oversteer, ABS and TC activity) are not candidate KPIs.
 - Feature selection (training laps only): drop candidate KPIs with Pearson |r| < 0.1 (Cohen, 1988) with both microsector time and exit speed. Then fit one screening XGBoost (default hyperparameters, no CV) on all training laps with the remaining KPIs, entry speed and microsector index as inputs. Rank by mean |SHAP| (TreeSHAP) per microsector, normalize per microsector per target, average the two targets, average across microsectors, keep the top **K = 10** common to all microsectors. RF, SVM and gain importance are not used. The same SHAP values give the per-microsector importance table.
 
 **Model and optimizer**
 - Surrogate: microsector-chained XGBoost on the 10 KPIs + entry speed + microsector index, trained on all valid training laps, tuned by grid search in driver-grouped 10-fold CV (MAE), then refit on all training laps. This is the first learned surrogate in this line of work (Hojaji et al. 2026 used a hand-written scaling formula).
-- Optimizer: Hojaji et al. (2026)'s GA with their exact settings: population 120, 200 generations, two-point crossover 0.8, Gaussian mutation rate 0.15 with sigma 0.05, lambda 0.1, random initialization within observed KPI ranges of the training laps. 19 x 10 = 190 genes.
+- Optimizer: Hojaji et al. (2026)'s GA with their exact settings: population 120, 200 generations, two-point crossover 0.8, Gaussian mutation rate 0.15 with sigma 0.05, elitism of the two best individuals, tournament size 3, lambda 0.1 (not tuned), random initialization within observed KPI ranges of the training laps, mutated genes clipped to the training range. 19 x 10 = 190 genes. The penalty P is rebuilt from Hojaji et al.'s description (formulas and thresholds not reported). Best fitness per generation is reported.
+- Output: per-microsector KPI targets reported against the Fast-cluster training median, phrased as coaching instructions.
 - Hojaji's 90-105% microsector-time clamp is **not** used.
 - Differential evolution is dropped (future work only). Do not add optimizer-comparison arms.
 
 **Evaluation**
-- Ablation: coupled (chained) fitness vs a microsector-independent fitness (entry speed = mean fast-lap entry speed per microsector). Both variants' best laps are re-scored by the one chained surrogate (common judge), validated by lap rollout on test laps. Paired seeds, Wilcoxon test; a difference counts only if it exceeds rollout error.
+- Ablation: coupled (chained) fitness vs a microsector-independent fitness (entry speed = mean entry speed of the Fast-cluster training laps at each microsector). Same KPIs, penalty and 30 random seeds shared between variants. Both variants' best laps are re-scored by the one chained surrogate (common judge), validated by lap rollout on test laps. Paired seeds, Wilcoxon test; a difference counts only if it exceeds rollout error.
 - The human-lap vs Hojaji EA lap comparison is dropped.
 
 **Scope**

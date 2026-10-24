@@ -1,6 +1,6 @@
 # Thesis Vault
 
-Obsidian vault for a thesis on micro-sector telemetry analysis for sim-racing lap optimization: build a micro-sector dataset, model sector-level feature importance and corner interdependency, then drive an evolutionary lap optimizer with it and validate against human baseline telemetry. Agent rules live in [AGENTS.md](AGENTS.md); the research anchor is [GOAL.md](GOAL.md).
+Obsidian vault for the thesis *Extending an ML-EA Framework with a Microsector-Chained Surrogate Model for Sim Racing Performance Optimization*: train a microsector-chained XGBoost surrogate on human sim-racing telemetry (Hojaji et al. 2024, Brands Hatch), use it as the fitness function of the genetic algorithm of Hojaji et al. (2026), and test by ablation against a microsector-independent fitness. Agent rules live in [AGENTS.md](AGENTS.md); the research anchor is [GOAL.md](GOAL.md).
 
 ## Getting papers in: Zotero pipeline
 

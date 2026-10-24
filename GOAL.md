@@ -1,10 +1,10 @@
 # GOAL — Thesis Anchor
 
-> Working title (TBD): *A Learned Microsector-Chained Surrogate for Evolutionary Lap Optimization in Sim Racing*
+> Title: *Extending an ML-EA Framework with a Microsector-Chained Surrogate Model for Sim Racing Performance Optimization* (Google Doc "Thesis TODOs", tab "for consultation #2")
 >
 > This file is the anchor. Every note, experiment, and chapter in this vault must trace back to a numbered goal below. If a task does not serve G1–G4, it is out of scope.
 >
-> **Status: v0.4 — DECISIONS SETTLED (2026-10-18).** Supersedes v0.3. Simulator, data, microsector count, model, optimizer and evaluation design are fixed (§6). v0.4 adds the lap filter, the external test set size, the Pearson + TreeSHAP feature selection and the surrogate tuning (§7). The v0.2 gates are kept, struck through, in §8. The Google Doc "Thesis TODOs" is the source of truth for written thesis text; this file must not contradict it.
+> **Status: v0.5 — synced with the Google Doc (2026-10-24).** Supersedes v0.4. v0.5 adopts the Doc title and the method details listed in §7. Simulator, data, microsector count, model, optimizer and evaluation design are fixed (§6). v0.4 adds the lap filter, the external test set size, the Pearson + TreeSHAP feature selection and the surrogate tuning (§7). The v0.2 gates are kept, struck through, in §8. The Google Doc "Thesis TODOs" is the source of truth for written thesis text; this file must not contradict it.
 
 **Terminology.** A *microsector* is one individual corner or straight. A *sector* is a larger track portion spanning several microsectors. Use "microsector" for the unit of analysis throughout.
 
@@ -50,8 +50,10 @@ Settled:
 - Source: Hojaji et al. 2024b supplementary data, `01_Corpus/data collection setup/segment level data behaviour.csv` (166 drivers, 826 laps). ACC, McLaren 720S GT3, Brands Hatch, recorded Oct 2022 – Jan 2023.
 - Cleaned file: `01_Corpus/data collection setup/segment_level_cleaned.csv` — **817 laps, 165 drivers, M = 19 microsectors** per lap. "Str 0-1(End)" unified to "Str 0-1 (End)"; driver D_045 dropped (all laps had lap-time mismatches); Lap 1 standing starts of P_001, P_010, P_052, P_062 dropped; D_058 Lap 3 kept.
 - Lap filter: remove in/out-laps, standing starts, invalid laps and lap-time mismatches, then laps with |z| > 3 on lap time across all laps (drivers have only 1–8 laps, median 5), not per driver. Applied to the main dataset and, separately, to the external laps. The 817 count is **before** the |z| filter; final counts are reported after filtering.
-- Split: valid laps 70/30 train/test **by driver**; all microsectors of a lap stay together. 10-fold CV on the training set, grouped the same way. Step 2 clusters all valid laps of the main dataset on lap time only; Fast-lap values used by the GA come from training laps only.
-- External test set: our own remotely collected laps (Brands Hatch, ACC v1.10.4, drivers' own rigs, Hojaji's instructions, driver form for hardware). **10 drivers × 30 clean timed laps.** **Never used for training, feature selection or tuning.** Mixed hardware and the small driver count are stated limitations.
+- Split: valid laps 70/30 train/test **by driver**; all microsectors of a lap stay together. 10-fold CV on the training set, grouped the same way. Step 2 clusters all valid laps of the main dataset on lap time only (K-Means, k by Elbow method and Silhouette coefficient); the fastest cluster is the Fast reference whatever k is. Fast-lap values used by the GA come from training laps only.
+- Microsector boundaries are fixed by track distance, so every lap is divided at the same points.
+- Measurement consistency: for each control KPI, the coefficient of variation in each microsector, averaged over drivers with at least two valid laps. KPIs with low consistency are reported as a limitation.
+- External test set: our own remotely collected laps (Brands Hatch, ACC v1.10.4, drivers' own rigs, instruction sheet and car setup file, driver form for hardware in Appendix 1; raw MoTeC .ld/.ldx files uploaded to a shared Google Drive folder). **10 drivers × 30 clean timed laps.** **Never used for training, feature selection or tuning.** Mixed hardware and the small driver count are stated limitations.
 
 Exit criteria:
 - **G1.1** Cleaning documented with before/after counts (done for the main dataset up to the |z| filter; counts after the |z| filter still to report).
@@ -66,8 +68,8 @@ Exit criteria:
 *Objective 2 (refinement pending): develop a chained surrogate model that predicts each microsector's time and exit speed from the driver's control KPIs and the entry speed carried over from the previous microsector.*
 
 Settled:
-- **Variables.** Control KPIs (driver inputs) are the only feature-selection candidates and the only GA genes. Entry/apex/exit speed and microsector time are state/outcome variables. v_entry,1 is fixed to the mean fast-lap entry speed at microsector 1.
-- **Candidate pool.** The 8 ready-made driver-input KPIs in the dataset plus driver-input channel statistics (e.g. brake max/mean).
+- **Variables.** Control KPIs (driver inputs) are the only feature-selection candidates and the only GA genes. Entry/apex/exit speed and microsector time are state/outcome variables. v_entry,1 is fixed to the mean entry speed of the Fast-cluster training laps at microsector 1.
+- **Candidate pool.** The 8 ready-made driver-input KPIs in the dataset (brake length, brake duration, trail-braking duration, throttle duration, throttle application speed, throttle release, peak steering value, time to peak steering) plus per-microsector driver-input statistics: max and mean brake, max and mean throttle, share of the microsector at full throttle, max, mean and SD of the absolute steering angle, steering reversal rate, lowest gear. Car-response channels (speed, accelerations, lane deviation, understeer and oversteer, ABS and TC activity) are excluded.
 - **Feature selection** (training laps only). Drop candidate KPIs with Pearson |r| < 0.1 (Cohen, 1988) with both microsector time and exit speed. Fit one screening XGBoost (default hyperparameters, no CV) on all training laps with the remaining KPIs, entry speed and microsector index as inputs. Rank by mean |SHAP| (TreeSHAP) per microsector; normalize per microsector per target, average the two targets, average across microsectors; keep the top **K = 10**, common to all microsectors. RF, SVM and gain importance are not used. The same SHAP values give the per-microsector importance table. The screening model is for ranking only.
 - **Surrogate.** One multi-output XGBoost shared by all microsectors, inputs = the 10 KPIs + entry speed + microsector index, outputs = microsector time and exit speed; v_exit of microsector n feeds v_entry of n+1. Trained on all valid training laps (not Fast laps only). Tuned by grid search in driver-grouped 10-fold CV (MAE), then refit on all training laps.
 - **Per-microsector importance is descriptive.** The thesis does not claim to fix Hojaji et al.'s (2026) data limitation: the Brands Hatch data (817 laps) is about the size of their Laguna Seca data (865 laps). Per-microsector importances are reported with bootstrap rank stability (`08_Project_Files/reviewer/Thesis_Reviewer_2026-10-13.md`, Q16).
@@ -87,10 +89,13 @@ Exit criteria:
 *Objective 3, part 1 (refinement pending): optimize lap time by using the chained surrogate as the fitness function of a genetic algorithm.*
 
 Settled — Hojaji et al. (2026) settings and initialization, unchanged:
-- Population 120, 200 generations, two-point crossover 0.8, Gaussian mutation rate 0.15 with sigma 0.05, lambda 0.1, random initialization within the observed KPI ranges of the training laps.
+- Population 120, 200 generations, two-point crossover 0.8, Gaussian mutation rate 0.15 with sigma 0.05, elitism of the two best individuals, tournament size 3, lambda 0.1 (not tuned), random initialization within the observed KPI ranges of the training laps. Mutated genes are clipped to the training range of each KPI.
+- The penalty P is rebuilt from Hojaji et al.'s (2026) description, because its formulas and thresholds are not reported.
+- The best fitness per generation is reported, to show that it levels off before generation 200.
 - Genome: 19 microsectors × 10 KPIs = **190 genes**.
 - Fitness = chained lap time + lambda × penalty.
 - Hojaji's 90–105 % microsector-time clamp is **not** used.
+- Output: per-microsector KPI targets, each reported against the median of that KPI in that microsector over the Fast-cluster training laps and phrased as a coaching instruction (e.g. "microsector 7: hold trail braking 0.2 s longer than the fast-lap median").
 - Lap closure is not enforced; the gap between the last microsector's exit speed and the fixed v_entry,1 is reported per optimized lap (`Methodology_Revised_2026-10-17.md`, Step 5).
 - Differential evolution is dropped (future work). No optimizer-comparison arms.
 
@@ -105,8 +110,8 @@ Exit criteria:
 *Objective 3, part 2 (refinement pending): validate the optimized microsector KPI targets against human telemetry from the fastest drivers.*
 
 Settled:
-- **Ablation.** Coupled (chained) fitness vs microsector-independent fitness (entry speed = mean fast-lap entry speed per microsector).
-- **Common judge.** Both variants' best laps are re-scored by the one chained surrogate, validated by the lap rollout on test laps.
+- **Ablation.** Coupled (chained) fitness vs microsector-independent fitness (entry speed = mean entry speed of the Fast-cluster training laps at each microsector). Both variants use the same selected KPIs, penalty term and 30 random seeds, shared so that runs are paired.
+- **Common judge.** Both variants' best laps are re-scored by the one chained surrogate, validated by the lap rollout on test laps. The gap between the independent variant's own predicted lap time and its chained lap time shows how much independent evaluation overstates the gain.
 - **Statistics.** Paired seeds, Wilcoxon signed-rank test. A difference counts only if it is larger than the rollout error (G2.3).
 - The human-lap vs Hojaji EA lap comparison is **dropped**.
 
@@ -181,7 +186,7 @@ All v0.2 open decisions are resolved:
 - [x] Evaluation: coupled vs independent fitness ablation, common judge, Wilcoxon
 - [ ] Hardware for every reported runtime — record when experiments run
 
-Still open (tracked in `08_Project_Files/todos/`): Objective wording in the Google Doc, data collection placeholders and driver instruction sheet, the optimized-lap validation step and common-judge limitation in the methodology text.
+Still open (tracked in `08_Project_Files/todos/`): Objective wording in the Google Doc (the only objectives in the Doc are in the "deprecated 2" tab), the driver instruction sheet, and the common-judge limitation in the methodology text. The driver form is done (Doc, Appendix 1).
 
 ---
 
@@ -195,6 +200,7 @@ Changes are **recorded**, not silently applied. Bump the version, add a row, nev
 | v0.2 | 2026-09-11 | **Full rebase.** Topic changed from porting SCR to micro-sector telemetry ML + evolutionary lap optimization for human drivers. | New base document `01_Corpus/thesis new base.md` | Student |
 | v0.3 | 2026-10-13 | **Decisions settled.** Gap narrowed from sector-level vs global importance to a learned microsector-chained fitness. Data switched to Hojaji et al. 2024b (817 laps, 165 drivers, M = 19); own laps external test only. GA unchanged; clamp and DE dropped. Three-arm ablation replaced by coupled vs independent fitness; human-baseline lap comparison dropped. All gates G1–G4 and S1–S5 replaced; v0.2 gates struck through in §8. | Methodology decisions 2026-09-25 to 2026-10-03, recorded in the Google Doc "Thesis TODOs" | Student |
 | v0.4 | 2026-10-18 | **Methods detailed.** Lap filter defined (\|z\| > 3 across all laps, separate for external laps; 817 is pre-filter, S1 changed). External test set fixed at 10 drivers × 30 laps, kept out of feature selection and tuning, reported per driver. Feature selection = Pearson \|r\| < 0.1 screen + TreeSHAP; RF/SVM/gain dropped. Surrogate is one shared XGBoost (KPIs + entry speed + microsector index), grid-searched in grouped CV. Per-microsector importance descriptive (G2.6, R7). Lap closure not enforced, gap reported. | Commit `16c45ff`: AGENTS.md §0 (2026-10-18), `08_Project_Files/methodology/Methodology_Revised_2026-10-17.md`, reviewer note Q16 | Student |
+| v0.5 | 2026-10-24 | **Synced with the Google Doc.** Title set to the Doc title. Added from the Doc: K-Means with Elbow + Silhouette and Fast reference = fastest cluster; microsector boundaries by track distance; KPI consistency check (CV); full candidate KPI pool and excluded car-response channels; fast-lap entry speeds and medians taken from Fast-cluster training laps; elitism 2, tournament 3, gene clipping, P rebuilt from description, convergence reported; output as coaching targets vs Fast-cluster median; 30 paired seeds; overstatement gap of the independent variant. | Google Doc "Thesis TODOs" (tabs "refined methodology", "for consultation #2"), snapshot `08_Project_Files/Thesis_TODOs_Doc_2026-10-24.md` | Student |
 
 ---
 

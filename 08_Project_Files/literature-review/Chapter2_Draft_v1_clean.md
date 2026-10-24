@@ -1,5 +1,7 @@
 # Chapter 2: Review of Related Literature
 
+> **Superseded (2026-10-24).** The Google Doc "Thesis TODOs" now holds the current text of this section. Repo copy: `08_Project_Files/Thesis_TODOs_Doc_2026-10-24.md`. This file is kept for history.
+
 ## 2.1 Introduction and Scope
 
 This chapter reviews the literature needed to answer one question: how should an evolutionary optimizer of sim-racing driver inputs evaluate a lap whose parts depend on one another? It first establishes why simulator telemetry is a sound source of data for this question (2.2). It then reviews how machine learning has been used to analyse driver performance from such telemetry (2.3) and describes the framework this thesis extends, the genetic algorithm of Hojaji et al. (2026) (2.4). Section 2.5 reviews the physical reasons why the parts of a lap cannot be scored independently. Sections 2.6 and 2.7 review optimizers and learned models that do or do not carry this dependence, and 2.8 brings the strands together into the research gap.

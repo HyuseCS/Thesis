@@ -1,5 +1,7 @@
 # Refined methodology, revised 2026-10-17
 
+> **Superseded (2026-10-24).** The Google Doc "Thesis TODOs" now holds the current text of this section. Repo copy: `08_Project_Files/Thesis_TODOs_Doc_2026-10-24.md`. This file is kept for history.
+
 Paste-ready revision of the "refined methodology" tab, from "Data Collection and Simulator Reliability" through Step 5. Citations are typed as (Author, year). Where a sentence is unchanged from the doc, keep the doc's existing Zotero citation instead of pasting over it. The change list at the end says exactly which sentences changed.
 
 ---
