@@ -1,0 +1,31 @@
+{
+  "citation_key": "Hojaji2024_KPIPrediction",
+  "title": "AI-enabled prediction of sim racing performance using telemetry data",
+  "creators": [
+    {
+      "creatorType": "author",
+      "firstName": "Fazilat",
+      "lastName": "Hojaji"
+    },
+    {
+      "creatorType": "author",
+      "firstName": "Adam J.",
+      "lastName": "Toth"
+    },
+    {
+      "creatorType": "author",
+      "firstName": "John M.",
+      "lastName": "Joyce"
+    },
+    {
+      "creatorType": "author",
+      "firstName": "Mark J.",
+      "lastName": "Campbell"
+    }
+  ],
+  "year": "2024",
+  "venue": "Computers in Human Behavior Reports",
+  "doi": "10.1016/j.chbr.2024.100414",
+  "url": "",
+  "zotero_item_key": "73TCIYW6"
+}
